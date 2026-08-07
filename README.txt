@@ -22,3 +22,12 @@ REPLACEMENT STEPS
 3. Confirm the FileNest page opens.
 4. Delete the older FileNest_v3.html/index file only after the new page works.
 5. On iPhone, remove the old Home Screen shortcut if necessary and add FileNest again so iOS refreshes the icon.
+
+
+SCANNER FIX
+-----------
+This build fixes the scanner capture lock:
+- Frame edge-analysis and camera capture now use separate processing states.
+- Auto-capture is deferred until frame analysis releases its lock.
+- Manual Capture remains available while OpenCV is loading/analyzing.
+- Scanner status is mirrored above the camera controls so you can see whether it is detecting, holding, or capturing.
