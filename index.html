@@ -4,117 +4,149 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#0f766e" />
-<title>Smart File Cabinet</title>
+<title>FileNest Prototype</title>
 <style>
-:root{--bg:#f4f7f7;--card:#fff;--ink:#173131;--muted:#617676;--brand:#0f766e;--brand2:#14b8a6;--line:#d8e3e2;--warn:#9a6700;--danger:#b42318;--shadow:0 12px 28px rgba(15,118,110,.10)}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#e9f7f5 0,#f7f9f9 220px);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+:root{--bg:#f4f7f7;--card:#fff;--ink:#173131;--muted:#617676;--brand:#0f766e;--brand2:#14b8a6;--line:#d8e3e2;--warn:#9a6700;--danger:#b42318;--blue:#2563eb;--purple:#6d28d9;--shadow:0 12px 28px rgba(15,118,110,.10)}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#e9f7f5 0,#f7f9f9 220px);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
 .app{max-width:760px;margin:auto;padding:18px 16px 44px}.hero{padding:18px 4px 14px}.hero h1{margin:0;font-size:clamp(28px,8vw,44px);letter-spacing:-.04em}.hero p{margin:.35rem 0 0;color:var(--muted)}
 .card{background:var(--card);border:1px solid rgba(15,118,110,.12);border-radius:22px;padding:18px;margin:14px 0;box-shadow:var(--shadow)}
 .step{display:flex;gap:12px;align-items:flex-start}.num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#d9f3ef;color:var(--brand);font-weight:800;flex:0 0 auto}.step h2{margin:2px 0 4px;font-size:20px}.step p{margin:0;color:var(--muted)}
-label{display:block;font-weight:700;margin:14px 0 6px}input,select,textarea,button{font:inherit}input[type=text],input[type=date],input[type=number],select,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:white;color:var(--ink)}textarea{min-height:90px;resize:vertical}.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:600px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
-.filebox{border:2px dashed #9bcac4;border-radius:18px;padding:22px;text-align:center;background:#f7fffd}.filebox input{width:100%}.thumb{margin-top:12px;max-width:100%;max-height:260px;border-radius:14px;display:none}.small{font-size:13px;color:var(--muted)}
+label{display:block;font-weight:700;margin:14px 0 6px} input,select,textarea,button{font:inherit} input[type=text],input[type=date],input[type=number],select,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:white;color:var(--ink)} textarea{min-height:90px;resize:vertical}.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:600px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
+.filebox{border:2px dashed #9bcac4;border-radius:18px;padding:18px;text-align:center;background:#f7fffd}.thumb{margin-top:12px;max-width:100%;max-height:330px;border-radius:14px;display:none}.small{font-size:13px;color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.chip{border:1px solid #b7d8d3;background:#f4fffd;color:#155e57;padding:8px 11px;border-radius:999px;cursor:pointer}.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
-button{border:0;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer}.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}.secondary{background:#e9f2f1;color:#174d49}.danger{background:#feeceb;color:var(--danger)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.actions button{flex:1 1 180px}
-.preview{background:#102f2d;color:#eafffb;border-radius:16px;padding:16px;overflow-wrap:anywhere}.preview .folder{color:#9be6db}.preview .name{font-weight:800;font-size:18px;margin-top:8px}.status{padding:10px 12px;border-radius:12px;background:#fff6d8;color:var(--warn);margin-top:12px}.hidden{display:none!important}.rule{border-top:1px solid var(--line);padding:12px 0}.rule:first-child{border-top:0}.rule strong{display:block}.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}.toggle{display:flex;gap:8px;align-items:center;margin-top:10px}.toggle input{width:20px;height:20px}
+button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px}.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}.secondary{background:#e9f2f1;color:#174d49}.danger{background:#feeceb;color:var(--danger)}.blue{background:var(--blue);color:#fff}.purple{background:var(--purple);color:#fff}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.actions>*{flex:1 1 180px}
+.preview{background:#102f2d;color:#eafffb;border-radius:16px;padding:16px;overflow-wrap:anywhere}.preview .folder{color:#9be6db}.preview .name{font-weight:800;font-size:18px;margin-top:8px}.status{padding:10px 12px;border-radius:12px;background:#fff6d8;color:var(--warn);margin-top:12px}.success{background:#e8faf4;color:#176b52}.hidden{display:none!important}.rule{border-top:1px solid var(--line);padding:12px 0}.rule:first-child{border-top:0}.rule strong{display:block}.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}.toggle{display:flex;gap:8px;align-items:center;margin-top:10px}.toggle input{width:20px;height:20px}.destination{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fafdfd}.destination h3{margin:0 0 5px;font-size:16px}.destination p{margin:0;color:var(--muted);font-size:13px}
+/* scanner */
+.scanner{position:fixed;inset:0;background:#071413;z-index:99;color:white;display:flex;flex-direction:column}.scannerTop{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}.scannerTop strong{font-size:17px}.scannerStage{position:relative;flex:1;min-height:0;overflow:hidden;background:#000}.scanner video,.scanner canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scanner canvas{pointer-events:none}.scanGuide{position:absolute;left:8%;right:8%;top:15%;bottom:15%;border:2px dashed rgba(255,255,255,.55);border-radius:10px;pointer-events:none}.scannerHint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.65);padding:8px 12px;border-radius:999px;font-size:13px;white-space:nowrap}.scannerControls{padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;background:#071413}.scannerControls button{flex:1}.scanDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:7px}.scanDot.ready{background:#22c55e}.scanDot.captured{background:#60a5fa}.cameraBtn{background:white;color:#123}.closeBtn{background:#223c39;color:#fff}.autoBtn{background:#0f766e;color:#fff}
 </style>
 </head>
 <body>
 <div class="app">
   <header class="hero">
-    <h1>Smart File Cabinet</h1>
-    <p>A private, no-subscription prototype that names and organizes scans using your rules.</p>
+    <h1>FileNest</h1>
+    <p>Scan it. Name it. File it. A private, no-subscription prototype.</p>
   </header>
 
   <section class="card">
-    <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>On iPhone, tap below and choose the camera.</p></div></div>
+    <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>Use the document scanner for edge detection and auto-capture, or choose an existing file.</p></div></div>
+    <div class="actions">
+      <button class="primary" id="openScannerBtn">▣ Scan document</button>
+      <label class="buttonLabel secondary" for="fileInput">＋ Choose existing file</label>
+      <input id="fileInput" class="hidden" type="file" accept="image/*,.pdf" />
+    </div>
     <div class="filebox" style="margin-top:14px">
-      <input id="fileInput" type="file" accept="image/*,.pdf" capture="environment" />
       <img id="thumb" class="thumb" alt="Document preview" />
       <div id="fileInfo" class="small" style="margin-top:10px">No document selected.</div>
     </div>
+    <div id="scannerAvailability" class="status hidden"></div>
   </section>
 
   <section class="card">
     <div class="step"><div class="num">2</div><div><h2>What kind of item is it?</h2><p>The app changes its questions based on your choice.</p></div></div>
     <div id="categoryChips" class="chips"></div>
-    <label for="category">Category</label>
-    <select id="category"></select>
+    <label for="category">Category</label><select id="category"></select>
     <div id="dynamicFields" class="grid two"></div>
-    <label for="notes">Optional notes</label>
-    <textarea id="notes" placeholder="Anything useful for finding this later"></textarea>
+    <label for="notes">Optional notes</label><textarea id="notes" placeholder="Anything useful for finding this later"></textarea>
   </section>
 
   <section class="card">
     <div class="step"><div class="num">3</div><div><h2>Review the suggested filing</h2><p>Edit anything before saving.</p></div></div>
     <div class="preview" style="margin-top:14px">
-      <div class="folder" id="folderPreview">/Unsorted/</div>
-      <div class="name" id="filenamePreview">Document_2026-08-06</div>
+      <div class="folder" id="folderPreview">/Unsorted/</div><div class="name" id="filenamePreview">Document.pdf</div>
     </div>
     <div class="grid two">
-      <div><label for="folderEdit">Folder</label><input id="folderEdit" type="text"></div>
+      <div><label for="folderEdit">Suggested folder</label><input id="folderEdit" type="text"></div>
       <div><label for="filenameEdit">Filename</label><input id="filenameEdit" type="text"></div>
     </div>
     <div class="toggle"><input id="rememberRule" type="checkbox"><label for="rememberRule" style="margin:0">Remember this as my preferred pattern</label></div>
-    <div class="actions">
-      <button class="primary" id="saveBtn">Save renamed copy</button>
-      <button class="secondary" id="manifestBtn">Download filing record</button>
-      <button class="danger" id="resetBtn">Start over</button>
+  </section>
+
+  <section class="card">
+    <div class="step"><div class="num">4</div><div><h2>Choose where to file it</h2><p>On iPhone, Proton Drive and Google Drive are reached through the Share Sheet. FileNest prepares the renamed document first.</p></div></div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="destination"><h3>🟣 Proton Drive</h3><p>Opens iPhone sharing. Choose Proton Drive, then the suggested folder.</p><button class="purple" id="protonBtn" style="width:100%;margin-top:10px">Save to Proton Drive</button></div>
+      <div class="destination"><h3>🔵 Google Drive</h3><p>Opens iPhone sharing. Choose Drive, then the suggested folder.</p><button class="blue" id="googleBtn" style="width:100%;margin-top:10px">Save to Google Drive</button></div>
+      <div class="destination"><h3>📱 Files / Device</h3><p>Downloads a renamed copy to your phone or computer.</p><button class="secondary" id="saveBtn" style="width:100%;margin-top:10px">Save to Files</button></div>
+      <div class="destination"><h3>↗️ Other app</h3><p>Share the renamed document using any compatible app.</p><button class="secondary" id="shareBtn" style="width:100%;margin-top:10px">Share elsewhere</button></div>
     </div>
+    <div class="actions"><button class="secondary" id="manifestBtn">Download filing record</button><button class="danger" id="resetBtn">Start over</button></div>
     <div id="saveStatus" class="status hidden"></div>
   </section>
 
   <section class="card">
-    <div class="step"><div class="num">4</div><div><h2>Saved rules on this phone</h2><p>These stay only in your browser.</p></div></div>
-    <div id="rulesList" style="margin-top:10px"></div>
-    <div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
+    <div class="step"><div class="num">5</div><div><h2>Saved rules on this phone</h2><p>These stay only in your browser.</p></div></div>
+    <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
   </section>
 
-  <div class="footer">No account, no cloud AI, no document upload. Everything runs in your browser.</div>
+  <div class="footer">No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser.</div>
 </div>
+
+<div id="scanner" class="scanner hidden" aria-hidden="true">
+  <div class="scannerTop"><strong>Document Scanner</strong><button id="closeScanner" class="closeBtn">Close</button></div>
+  <div class="scannerStage">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <div class="scanGuide"></div>
+    <div class="scannerHint"><span id="scanDot" class="scanDot"></span><span id="scanHint">Point camera at the document</span></div>
+  </div>
+  <div class="scannerControls"><button id="autoToggle" class="autoBtn">Auto: ON</button><button id="captureBtn" class="cameraBtn">● Capture</button></div>
+</div>
+<canvas id="workCanvas" class="hidden"></canvas>
+<canvas id="resultCanvas" class="hidden"></canvas>
+<script async src="https://docs.opencv.org/4.x/opencv.js"></script>
 <script>
 const today = new Date().toISOString().slice(0,10);
 const definitions = {
-  "Vehicle Maintenance": {folder:"Vehicles/{Vehicle}/Maintenance/{Year}", pattern:"{Vehicle}_{Service}_{Odometer}_{Date}", fields:[
-    ["Vehicle","text","e.g., Toyota Aqua"],["Service","select",["Oil Change","Tires","Brakes","Battery","Inspection","Repair","Other"]],["Odometer","number","e.g., 52345"],["Date","date",today],["Shop","text","e.g., Yellow Hat"]]},
-  "Recipe": {folder:"Recipes/{Recipe Category}", pattern:"Recipe_{Title}_{Main Ingredient}", fields:[
-    ["Title","text","Recipe name"],["Recipe Category","select",["Breakfast","Chicken","Beef","Pork","Seafood","Vegetarian","Pasta","Soup","Bread","Dessert","Drink","Other"]],["Main Ingredient","text","Main ingredient"],["Cuisine","text","e.g., Spanish"],["Rating","select",["Not rated","1 star","2 stars","3 stars","4 stars","5 stars"]]]},
-  "VA / Military": {folder:"VA/{Document Type}/{Year}", pattern:"VA_{Document Type}_{Person}_{Date}", fields:[
-    ["Document Type","select",["Rating Decision","Statement of Benefits","Claim","Appeal","Medical Record","Education Benefit","DD214","Orders","Award","Other"]],["Person","text","Family member"],["Date","date",today],["Claim or Reference","text","Optional claim/reference number"]]},
-  "Medical": {folder:"Medical/{Person}/{Year}", pattern:"{Person}_{Provider}_{Document Type}_{Date}", fields:[
-    ["Person","text","Patient"],["Provider","text","Hospital or provider"],["Document Type","select",["Visit Summary","Lab Result","Imaging","Prescription","Referral","Bill","EOB","Dental","Vision","Other"]],["Date","date",today]]},
-  "Education": {folder:"Education/{Person}/{School}", pattern:"{Person}_{School}_{Document Type}_{Term}", fields:[
-    ["Person","text","Student"],["School","text","School name"],["Document Type","select",["Transcript","Enrollment","Tuition","Acceptance","Certificate","Diploma","Assignment","Other"]],["Term","text","e.g., Fall 2026"]]},
-  "Employment": {folder:"Employment/{Employer}/{Year}", pattern:"{Employer}_{Document Type}_{Date}", fields:[
-    ["Employer","text","Employer"],["Document Type","select",["Resume","Cover Letter","Offer Letter","Contract","Pay Stub","Evaluation","Training","Application","Other"]],["Date","date",today],["Position","text","Job title"]]},
-  "Home / Purchase": {folder:"Home/{Item}/{Document Type}", pattern:"{Brand}_{Item}_{Document Type}_{Date}", fields:[
-    ["Item","text","e.g., Refrigerator"],["Brand","text","Brand"],["Document Type","select",["Receipt","Warranty","Manual","Installation","Repair","Insurance","Other"]],["Date","date",today],["Serial Number","text","Optional"]]},
-  "Financial / Tax": {folder:"Financial/{Document Type}/{Year}", pattern:"{Institution}_{Document Type}_{Tax Year}_{Date}", fields:[
-    ["Institution","text","Bank, employer, agency"],["Document Type","select",["Tax Return","W-2","1099","Bank Statement","Credit Card Statement","Loan","Investment","Receipt","Other"]],["Tax Year","text","e.g., 2026"],["Date","date",today]]},
-  "Personal / Legal": {folder:"Personal/{Person}/{Document Type}", pattern:"{Person}_{Document Type}_{Date}", fields:[
-    ["Person","text","Person"],["Document Type","select",["Passport","Birth Certificate","Marriage Certificate","Will","Power of Attorney","ID","Citizenship","Immigration","Contract","Other"]],["Date","date",today]]},
+  "Vehicle Maintenance": {folder:"Vehicles/{Vehicle}/Maintenance/{Year}", pattern:"{Vehicle}_{Service}_{Odometer}mi_{Date}", fields:[["Vehicle","text","e.g., Toyota Aqua"],["Service","select",["Oil Change","Tires","Brakes","Battery","Inspection","Repair","Other"]],["Odometer","number","e.g., 52345"],["Date","date",today],["Shop","text","e.g., Yellow Hat"]]},
+  "Recipe": {folder:"Recipes/{Recipe Category}", pattern:"Recipe_{Title}_{Main Ingredient}", fields:[["Title","text","Recipe name"],["Recipe Category","select",["Breakfast","Chicken","Beef","Pork","Seafood","Vegetarian","Pasta","Soup","Bread","Dessert","Drink","Other"]],["Main Ingredient","text","Main ingredient"],["Cuisine","text","e.g., Spanish"],["Rating","select",["Not rated","1 star","2 stars","3 stars","4 stars","5 stars"]]]},
+  "Civic / Voter": {folder:"Personal/Civic/{Document Type}", pattern:"{Person}_{Document Type}_{Jurisdiction}_{Date}", fields:[["Person","text","Person"],["Document Type","select",["Voter Registration","Voter Card","Election Notice","Absentee Ballot Request","Civic Record","Other"]],["Jurisdiction","text","State, county, or locality"],["Date","date",today]]},
+  "VA / Military": {folder:"VA/{Document Type}/{Year}", pattern:"VA_{Document Type}_{Person}_{Date}", fields:[["Document Type","select",["Rating Decision","Statement of Benefits","Claim","Appeal","Medical Record","Education Benefit","DD214","Orders","Award","Other"]],["Person","text","Family member"],["Date","date",today],["Claim or Reference","text","Optional claim/reference number"]]},
+  "Medical": {folder:"Medical/{Person}/{Year}", pattern:"{Person}_{Provider}_{Document Type}_{Date}", fields:[["Person","text","Patient"],["Provider","text","Hospital or provider"],["Document Type","select",["Visit Summary","Lab Result","Imaging","Prescription","Referral","Bill","EOB","Dental","Vision","Other"]],["Date","date",today]]},
+  "Education": {folder:"Education/{Person}/{School}", pattern:"{Person}_{School}_{Document Type}_{Term}", fields:[["Person","text","Student"],["School","text","School name"],["Document Type","select",["Transcript","Enrollment","Tuition","Acceptance","Certificate","Diploma","Assignment","Other"]],["Term","text","e.g., Fall 2026"]]},
+  "Employment": {folder:"Employment/{Employer}/{Year}", pattern:"{Employer}_{Document Type}_{Date}", fields:[["Employer","text","Employer"],["Document Type","select",["Resume","Cover Letter","Offer Letter","Contract","Pay Stub","Evaluation","Training","Application","Other"]],["Date","date",today],["Position","text","Job title"]]},
+  "Home / Purchase": {folder:"Home/{Item}/{Document Type}", pattern:"{Brand}_{Item}_{Document Type}_{Date}", fields:[["Item","text","e.g., Refrigerator"],["Brand","text","Brand"],["Document Type","select",["Receipt","Warranty","Manual","Installation","Repair","Insurance","Other"]],["Date","date",today],["Serial Number","text","Optional"]]},
+  "Financial / Tax": {folder:"Financial/{Document Type}/{Year}", pattern:"{Institution}_{Document Type}_{Tax Year}_{Date}", fields:[["Institution","text","Bank, employer, agency"],["Document Type","select",["Tax Return","W-2","1099","Bank Statement","Credit Card Statement","Loan","Investment","Receipt","Other"]],["Tax Year","text","e.g., 2026"],["Date","date",today]]},
+  "Personal / Legal": {folder:"Personal/{Person}/{Document Type}", pattern:"{Person}_{Document Type}_{Date}", fields:[["Person","text","Person"],["Document Type","select",["Passport","Birth Certificate","Marriage Certificate","Will","Power of Attorney","ID","Citizenship","Immigration","Contract","Other"]],["Date","date",today]]},
   "Other": {folder:"Unsorted/{Year}", pattern:"{Title}_{Date}", fields:[["Title","text","Document title"],["Date","date",today]]}
 };
-
-const $=id=>document.getElementById(id); let selectedFile=null; let generated={folder:"",name:""};
+const $=id=>document.getElementById(id); let selectedFile=null; let generated={folder:"",name:""}; let stream=null; let autoCapture=true; let scanTimer=null; let stableFrames=0; let lastQuad=null; let cvReady=false; let processing=false;
 function sanitize(v){return String(v||"").trim().replace(/[\\/:*?"<>|#%{}~&]/g," ").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
 function values(){const out={Year:new Date().getFullYear()}; document.querySelectorAll('[data-field]').forEach(el=>out[el.dataset.field]=el.value); return out}
 function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
-function extension(){if(!selectedFile)return ".pdf"; const n=selectedFile.name||""; const m=n.match(/\.[^.]+$/); return m?m[0].toLowerCase():(selectedFile.type.includes("pdf")?".pdf":".jpg")}
-function updatePreview(){const d=definitions[$('category').value], v=values(); v.Year=(v.Date||today).slice(0,4)||new Date().getFullYear(); let saved=getRules()[$('category').value]; let folder=applyTemplate(saved?.folder||d.folder,v); let name=applyTemplate(saved?.pattern||d.pattern,v); folder="/"+folder.replace(/^\/+|\/+$/g,"")+"/"; name=(name||"Document_"+today)+extension(); generated={folder,name}; $('folderPreview').textContent=folder; $('filenamePreview').textContent=name; $('folderEdit').value=folder; $('filenameEdit').value=name}
-function renderFields(){const cat=$('category').value,d=definitions[cat]; $('dynamicFields').innerHTML=""; d.fields.forEach(([name,type,arg])=>{const wrap=document.createElement('div'); const lab=document.createElement('label'); lab.textContent=name; const el=document.createElement(type==='select'?'select':'input'); el.dataset.field=name; if(type==='select'){arg.forEach(o=>{let op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op)})}else{el.type=type; if(type==='date')el.value=arg||today; else el.placeholder=arg||""} el.addEventListener('input',updatePreview); wrap.append(lab,el); $('dynamicFields').appendChild(wrap)}); updatePreview(); syncChips()}
+function extension(){if(!selectedFile)return ".jpg"; const n=selectedFile.name||""; const m=n.match(/\.[^.]+$/); return m?m[0].toLowerCase():(selectedFile.type.includes("pdf")?".pdf":".jpg")}
+function updatePreview(){const d=definitions[$('category').value],v=values();v.Year=(v.Date||today).slice(0,4)||new Date().getFullYear();let saved=getRules()[$('category').value];let folder=applyTemplate(saved?.folder||d.folder,v);let name=applyTemplate(saved?.pattern||d.pattern,v);folder="/"+folder.replace(/^\/+|\/+$/g,"")+"/";name=(name||"Document_"+today)+extension();generated={folder,name};$('folderPreview').textContent=folder;$('filenamePreview').textContent=name;$('folderEdit').value=folder;$('filenameEdit').value=name}
+function renderFields(){const cat=$('category').value,d=definitions[cat];$('dynamicFields').innerHTML="";d.fields.forEach(([name,type,arg])=>{const wrap=document.createElement('div'),lab=document.createElement('label');lab.textContent=name;const el=document.createElement(type==='select'?'select':'input');el.dataset.field=name;if(type==='select'){arg.forEach(o=>{let op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op)})}else{el.type=type;if(type==='date')el.value=arg||today;else el.placeholder=arg||""}el.addEventListener('input',updatePreview);wrap.append(lab,el);$('dynamicFields').appendChild(wrap)});updatePreview();syncChips()}
 function syncChips(){document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.cat===$('category').value))}
-function initCategories(){Object.keys(definitions).forEach(cat=>{let op=document.createElement('option');op.value=cat;op.textContent=cat;$('category').appendChild(op); let b=document.createElement('button');b.type='button';b.className='chip';b.dataset.cat=cat;b.textContent=cat;b.onclick=()=>{$('category').value=cat;renderFields()};$('categoryChips').appendChild(b)}); $('category').value='Vehicle Maintenance'; $('category').onchange=renderFields; renderFields()}
-$('fileInput').addEventListener('change',e=>{selectedFile=e.target.files[0]||null; if(!selectedFile){$('fileInfo').textContent='No document selected.';return} $('fileInfo').textContent=`${selectedFile.name} • ${(selectedFile.size/1024).toFixed(1)} KB`; if(selectedFile.type.startsWith('image/')){const u=URL.createObjectURL(selectedFile);$('thumb').src=u;$('thumb').style.display='inline-block'}else{$('thumb').style.display='none'} updatePreview()});
+function initCategories(){Object.keys(definitions).forEach(cat=>{let op=document.createElement('option');op.value=cat;op.textContent=cat;$('category').appendChild(op);let b=document.createElement('button');b.type='button';b.className='chip';b.dataset.cat=cat;b.textContent=cat;b.onclick=()=>{$('category').value=cat;renderFields()};$('categoryChips').appendChild(b)});$('category').value='Civic / Voter';$('category').onchange=renderFields;renderFields()}
+function selectFile(file, label){selectedFile=file;if(!selectedFile){$('fileInfo').textContent='No document selected.';return}$('fileInfo').textContent=`${label||selectedFile.name} • ${(selectedFile.size/1024).toFixed(1)} KB`;if(selectedFile.type.startsWith('image/')){const u=URL.createObjectURL(selectedFile);$('thumb').src=u;$('thumb').style.display='inline-block'}else $('thumb').style.display='none';updatePreview()}
+$('fileInput').addEventListener('change',e=>selectFile(e.target.files[0]||null));
 function getRules(){try{return JSON.parse(localStorage.getItem('smartFileRules')||'{}')}catch{return {}}}
 function setRules(r){localStorage.setItem('smartFileRules',JSON.stringify(r));renderRules()}
-function remember(){if(!$('rememberRule').checked)return; const r=getRules(); r[$('category').value]={folder:$('folderEdit').value.replace(/^\/+|\/+$/g,''),pattern:$('filenameEdit').value.replace(/\.[^.]+$/,'')}; setRules(r)}
-function renderRules(){const r=getRules(),keys=Object.keys(r); $('rulesList').innerHTML=keys.length?'':'<div class="small">No saved rules yet.</div>'; keys.forEach(k=>{let d=document.createElement('div');d.className='rule';d.innerHTML=`<strong>${k}</strong><span class="small">${r[k].folder}<br>${r[k].pattern}</span>`;$('rulesList').appendChild(d)})}
-$('saveBtn').onclick=()=>{if(!selectedFile){show('Choose or scan a document first.');return} remember(); const a=document.createElement('a');a.href=URL.createObjectURL(selectedFile);a.download=$('filenameEdit').value||generated.name;document.body.appendChild(a);a.click();a.remove();show(`Saved a renamed copy. File it in ${$('folderEdit').value}. On iPhone, use the Share button to move it into Proton Drive.`)};
-$('manifestBtn').onclick=()=>{remember(); const record={created:new Date().toISOString(),category:$('category').value,folder:$('folderEdit').value,filename:$('filenameEdit').value,answers:values(),notes:$('notes').value,original:selectedFile?.name||null}; const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=($('filenameEdit').value||'filing-record').replace(/\.[^.]+$/,'')+'_record.json';a.click();show('Downloaded the filing record.');};
-$('resetBtn').onclick=()=>{selectedFile=null;$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.')};
-$('clearRules').onclick=()=>{localStorage.removeItem('smartFileRules');renderRules();show('Saved rules cleared.')};
-$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
-function show(msg){$('saveStatus').textContent=msg;$('saveStatus').classList.remove('hidden')}
+function remember(){if(!$('rememberRule').checked)return;const r=getRules();r[$('category').value]={folder:$('folderEdit').value.replace(/^\/+|\/+$/g,''),pattern:$('filenameEdit').value.replace(/\.[^.]+$/,'')};setRules(r)}
+function renderRules(){const r=getRules(),keys=Object.keys(r);$('rulesList').innerHTML=keys.length?'':'<div class="small">No saved rules yet.</div>';keys.forEach(k=>{let d=document.createElement('div');d.className='rule';d.innerHTML=`<strong>${k}</strong><span class="small">${r[k].folder}<br>${r[k].pattern}</span>`;$('rulesList').appendChild(d)})}
+function show(msg,ok=false){$('saveStatus').textContent=msg;$('saveStatus').classList.remove('hidden');$('saveStatus').classList.toggle('success',ok)}
+function renamedFile(){if(!selectedFile)return null;const filename=$('filenameEdit').value||generated.name;return new File([selectedFile],filename,{type:selectedFile.type||'application/octet-stream',lastModified:Date.now()})}
+async function sharePrepared(destination){if(!selectedFile){show('Scan or choose a document first.');return}remember();const f=renamedFile();const shareData={files:[f],title:'FileNest document',text:`Suggested folder: ${$('folderEdit').value}`};if(navigator.canShare?.(shareData)){try{await navigator.share(shareData);show(`Share Sheet opened. Choose ${destination}, then file it in ${$('folderEdit').value}.`,true)}catch(e){if(e.name!=='AbortError')show('Sharing was not available. Use Save to Files instead.')}}else{downloadFile();show(`Your browser cannot share files directly. The renamed copy was downloaded. Open it and share it to ${destination}.`)}}
+function downloadFile(){if(!selectedFile){show('Scan or choose a document first.');return}remember();const a=document.createElement('a');a.href=URL.createObjectURL(selectedFile);a.download=$('filenameEdit').value||generated.name;document.body.appendChild(a);a.click();a.remove()}
+$('protonBtn').onclick=()=>sharePrepared('Proton Drive');$('googleBtn').onclick=()=>sharePrepared('Google Drive');$('shareBtn').onclick=()=>sharePrepared('the app you want');$('saveBtn').onclick=()=>{downloadFile();if(selectedFile)show(`Renamed copy saved. Suggested folder: ${$('folderEdit').value}`,true)};
+$('manifestBtn').onclick=()=>{remember();const record={created:new Date().toISOString(),category:$('category').value,folder:$('folderEdit').value,filename:$('filenameEdit').value,answers:values(),notes:$('notes').value,original:selectedFile?.name||null};const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=($('filenameEdit').value||'filing-record').replace(/\.[^.]+$/,'')+'_record.json';a.click();show('Downloaded the filing record.',true)};
+$('resetBtn').onclick=()=>{selectedFile=null;$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.',true)};$('clearRules').onclick=()=>{localStorage.removeItem('smartFileRules');renderRules();show('Saved rules cleared.',true)};$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
+
+// Scanner
+function cameraSupported(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)}
+$('openScannerBtn').onclick=startScanner;$('closeScanner').onclick=stopScanner;$('captureBtn').onclick=()=>captureScan(lastQuad);$('autoToggle').onclick=()=>{autoCapture=!autoCapture;$('autoToggle').textContent=`Auto: ${autoCapture?'ON':'OFF'}`};
+async function startScanner(){if(!cameraSupported()){availability('Camera scanning requires Safari/Chrome on an HTTPS page. Choose an existing file instead.');return}try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});$('video').srcObject=stream;$('scanner').classList.remove('hidden');$('scanner').setAttribute('aria-hidden','false');stableFrames=0;lastQuad=null;setHint('Point camera at the document','');await $('video').play();scanTimer=setInterval(processFrame,180)}catch(e){availability('Could not open the camera. On iPhone, allow camera permission and open FileNest from an HTTPS website.')}}
+function stopScanner(){if(scanTimer){clearInterval(scanTimer);scanTimer=null}if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}$('scanner').classList.add('hidden');$('scanner').setAttribute('aria-hidden','true')}
+function availability(msg){$('scannerAvailability').textContent=msg;$('scannerAvailability').classList.remove('hidden')}
+function setHint(text,state){$('scanHint').textContent=text;$('scanDot').className='scanDot'+(state?' '+state:'')}
+function sizeOverlay(){const r=$('video').getBoundingClientRect(),c=$('overlay'),dpr=window.devicePixelRatio||1;c.width=Math.max(1,Math.floor(r.width*dpr));c.height=Math.max(1,Math.floor(r.height*dpr));return {w:c.width,h:c.height,dpr}}
+function processFrame(){if(processing||!$('video').videoWidth)return;processing=true;try{if(typeof cv==='undefined'||!cv.Mat){setHint('Edge engine loading — manual capture works','');drawGuideOnly();return}cvReady=true;const video=$('video'),work=$('workCanvas');const maxW=640,ratio=video.videoHeight/video.videoWidth;work.width=maxW;work.height=Math.round(maxW*ratio);const ctx=work.getContext('2d');ctx.drawImage(video,0,0,work.width,work.height);let src=cv.imread(work),gray=new cv.Mat(),blur=new cv.Mat(),edge=new cv.Mat(),contours=new cv.MatVector(),hier=new cv.Mat();cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);cv.GaussianBlur(gray,blur,new cv.Size(5,5),0);cv.Canny(blur,edge,70,180);cv.findContours(edge,contours,hier,cv.RETR_LIST,cv.CHAIN_APPROX_SIMPLE);let best=null,bestArea=0;for(let i=0;i<contours.size();i++){let cnt=contours.get(i),peri=cv.arcLength(cnt,true),approx=new cv.Mat();cv.approxPolyDP(cnt,approx,.02*peri,true);let area=Math.abs(cv.contourArea(approx));if(approx.rows===4&&area>bestArea&&area>work.width*work.height*.16){bestArea=area;best=[];for(let j=0;j<4;j++)best.push({x:approx.intPtr(j,0)[0],y:approx.intPtr(j,0)[1]})}approx.delete();cnt.delete()}src.delete();gray.delete();blur.delete();edge.delete();contours.delete();hier.delete();if(best){const ordered=orderQuad(best);drawQuad(ordered,work.width,work.height);const quality=bestArea/(work.width*work.height);const movement=quadMovement(lastQuad,ordered);lastQuad=ordered;if(quality>.32&&movement<9){stableFrames++;setHint(stableFrames>3?'Hold still…':'Document detected','ready')}else{stableFrames=0;setHint('Document detected — move closer','ready')}if(autoCapture&&stableFrames>=7){stableFrames=0;captureScan(ordered)}}else{lastQuad=null;stableFrames=0;setHint('Find all four document edges','');drawGuideOnly()}}catch(e){drawGuideOnly();setHint('Edge detection unavailable — use Capture','')}finally{processing=false}}
+function orderQuad(pts){const sums=pts.map(p=>p.x+p.y),diffs=pts.map(p=>p.x-p.y);return [pts[sums.indexOf(Math.min(...sums))],pts[diffs.indexOf(Math.max(...diffs))],pts[sums.indexOf(Math.max(...sums))],pts[diffs.indexOf(Math.min(...diffs))]]}
+function quadMovement(a,b){if(!a||!b)return 999;return a.reduce((s,p,i)=>s+Math.hypot(p.x-b[i].x,p.y-b[i].y),0)/4}
+function drawGuideOnly(){const c=$('overlay'),{w,h}=sizeOverlay(),ctx=c.getContext('2d');ctx.clearRect(0,0,w,h)}
+function drawQuad(q,srcW,srcH){const c=$('overlay'),{w,h}=sizeOverlay(),ctx=c.getContext('2d'),video=$('video');ctx.clearRect(0,0,w,h);const videoRatio=srcW/srcH,boxRatio=w/h;let scale,ox=0,oy=0;if(videoRatio>boxRatio){scale=h/srcH;ox=(w-srcW*scale)/2}else{scale=w/srcW;oy=(h-srcH*scale)/2}ctx.strokeStyle='#31f3ba';ctx.lineWidth=4*(window.devicePixelRatio||1);ctx.fillStyle='rgba(49,243,186,.08)';ctx.beginPath();q.forEach((p,i)=>{const x=p.x*scale+ox,y=p.y*scale+oy;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.closePath();ctx.fill();ctx.stroke()}
+async function captureScan(quad){if(processing)return;processing=true;try{const video=$('video'),full=document.createElement('canvas');full.width=video.videoWidth;full.height=video.videoHeight;full.getContext('2d').drawImage(video,0,0);let outCanvas=full;if(quad&&cvReady){const scale=video.videoWidth/$('workCanvas').width;const q=quad.map(p=>({x:p.x*scale,y:p.y*scale}));outCanvas=perspectiveCrop(full,q)}setHint('Captured','captured');const blob=await new Promise(res=>outCanvas.toBlob(res,'image/jpeg',.92));const file=new File([blob],`Scan_${today}.jpg`,{type:'image/jpeg',lastModified:Date.now()});selectFile(file,'Scanned document');stopScanner()}catch(e){setHint('Capture failed — try again','')}finally{processing=false}}
+function perspectiveCrop(canvas,q){try{const src=cv.imread(canvas),w1=Math.hypot(q[1].x-q[0].x,q[1].y-q[0].y),w2=Math.hypot(q[2].x-q[3].x,q[2].y-q[3].y),h1=Math.hypot(q[3].x-q[0].x,q[3].y-q[0].y),h2=Math.hypot(q[2].x-q[1].x,q[2].y-q[1].y),W=Math.max(300,Math.round(Math.max(w1,w2))),H=Math.max(400,Math.round(Math.max(h1,h2)));let s=cv.matFromArray(4,1,cv.CV_32FC2,q.flatMap(p=>[p.x,p.y])),d=cv.matFromArray(4,1,cv.CV_32FC2,[0,0,W-1,0,W-1,H-1,0,H-1]),M=cv.getPerspectiveTransform(s,d),dst=new cv.Mat();cv.warpPerspective(src,dst,M,new cv.Size(W,H),cv.INTER_LINEAR,cv.BORDER_REPLICATE);const out=$('resultCanvas');out.width=W;out.height=H;cv.imshow(out,dst);src.delete();s.delete();d.delete();M.delete();dst.delete();return out}catch(e){return canvas}}
 initCategories();renderRules();
 </script>
 </body>
