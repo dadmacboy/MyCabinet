@@ -1,43 +1,32 @@
-FileNest — FINAL replacement package
-====================================
+FileNest — Native Scanner build
+================================
 
-MAIN FILE
-- Use index.html as the app.
-- This replaces the prior FileNest_v3.html file.
-- If you are updating an existing static host/repository, delete the old HTML file after index.html is uploaded and confirmed working.
+THIS BUILD DOES NOT USE OPENCV OR ANY COMPUTER-VISION CDN.
 
-IPHONE ICON
-- apple-touch-icon.png is used by Safari Add to Home Screen.
-- filenest-icon-1024.png is the full-size icon for Shortcuts/manual icon selection.
-- Keep all files from this ZIP in the same folder.
+The document scanner is implemented inside index.html using browser JavaScript:
+- live rear-camera preview
+- grayscale + Sobel edge detection
+- adaptive edge threshold
+- edge dilation to join broken page borders
+- connected-component page-outline search
+- four-corner estimation
+- green quadrilateral + corner markers
+- 6-frame stability lock
+- automatic capture
+- native perspective correction
+- Review Scan screen with Retake / Use Scan
+- manual Capture fallback
 
-IMPORTANT
-- Camera scanning still requires HTTPS in Safari/Chrome.
-- If you open index.html directly from Files, basic app functions may work, but camera access can be blocked by iOS.
-- For the phone shortcut/Home Screen app, host this folder on the same HTTPS site you were using before.
+TESTING
+1. Upload ALL files from this ZIP to the GitHub repository root.
+2. Wait for GitHub Pages to redeploy.
+3. First test the GitHub Pages URL directly in Safari, not the old Home Screen shortcut.
+4. Tap Scan document.
+5. Rear camera should open immediately.
+6. Put a white/bright sheet on a contrasting darker background.
+7. Green corners and border should appear when the page is found.
+8. Hold still until Stable reaches 6/6.
+9. FileNest should auto-snap and show Review Scan.
+10. Tap Use Scan or Retake.
 
-REPLACEMENT STEPS
-1. Extract this ZIP.
-2. Upload index.html and all included icon/manifest files to the same folder on your host.
-3. Confirm the FileNest page opens.
-4. Delete the older FileNest_v3.html/index file only after the new page works.
-5. On iPhone, remove the old Home Screen shortcut if necessary and add FileNest again so iOS refreshes the icon.
-
-
-SCANNER V3 — OPENCV LOADER FIX
-------------------------------
-The previous scanner could display "Engine Failed" simply because a 15-second
-timeout expired while the large OpenCV.js library was still downloading.
-
-This build:
-- Removes that artificial timeout completely.
-- Uses the official Emscripten Module.onRuntimeInitialized callback.
-- Opens the camera immediately while OpenCV continues loading.
-- Shows Engine "Loading" -> "Starting" -> "Ready".
-- Only displays "Failed" when the actual script download fails.
-- Starts page-edge detection automatically as soon as OpenCV reports ready.
-
-FIRST-LAUNCH NOTE:
-OpenCV.js is a large browser library. The first uncached iPhone load may take
-noticeably longer than subsequent loads. Keep the scanner open until Engine
-changes to Ready.
+There is no "Engine Loading" stage in this version because the detector is built into the page.
