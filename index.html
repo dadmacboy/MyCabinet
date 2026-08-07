@@ -226,48 +226,62 @@ function updateMetrics(engine,edges,stable){
   if(stable!==undefined && $('metricStable')) $('metricStable').textContent=`${stable}/8`;
 }
 
-function loadOpenCV(){
-  return new Promise((resolve,reject)=>{
-    if(cvReady && cvApi) return resolve(cvApi);
+let opencvRequested=false;
+let opencvLoadError=false;
 
-    const finish = async ()=>{
-      try{
-        let api = window.cv;
-        // Newer OpenCV.js builds may expose cv as a Promise.
-        if(api && typeof api.then === 'function') api = await api;
-        if(api && api.Mat){
-          cvApi=api; cvReady=true;
-          updateMetrics('Ready',0,0);
-          resolve(api);
-          return;
-        }
-        // Some builds expose onRuntimeInitialized.
-        if(api){
-          api.onRuntimeInitialized=()=>{
-            cvApi=api; cvReady=true;
-            updateMetrics('Ready',0,0);
-            resolve(api);
-          };
-          return;
-        }
-        reject(new Error('OpenCV API unavailable'));
-      }catch(e){ reject(e); }
-    };
+// OpenCV's official browser build signals readiness through Emscripten's
+// Module.onRuntimeInitialized callback. Do not use a short timeout: opencv.js
+// is large and can take a while on a fresh iPhone load.
+var Module = {
+  onRuntimeInitialized(){
+    try{
+      if(typeof cv !== 'undefined' && cv.Mat){
+        cvApi=cv;
+        cvReady=true;
+        opencvLoadError=false;
+        updateMetrics('Ready',0,stableFrames);
+        setHint('Edge engine ready — point at a document','ready');
 
-    if(window.cv){ finish(); return; }
+        // If the camera is already open, start detection immediately.
+        if(detectorStarted && !scanTimer) startDetectionLoop();
+      }else{
+        updateMetrics('Error',0,0);
+        setHint('OpenCV loaded but did not initialize correctly','');
+      }
+    }catch(e){
+      console.error('OpenCV runtime init error',e);
+      updateMetrics('Error',0,0);
+      setHint('Edge engine initialization error','');
+    }
+  }
+};
 
-    updateMetrics('Loading',0,0);
-    const s=document.createElement('script');
-    s.src='https://docs.opencv.org/4.x/opencv.js';
-    s.async=true;
-    s.onload=finish;
-    s.onerror=()=>reject(new Error('OpenCV failed to load'));
-    document.head.appendChild(s);
+function requestOpenCV(){
+  if(cvReady || opencvRequested) return;
+  opencvRequested=true;
+  opencvLoadError=false;
+  updateMetrics('Loading',0,0);
 
-    setTimeout(()=>{
-      if(!cvReady) reject(new Error('OpenCV initialization timeout'));
-    },15000);
-  });
+  const s=document.createElement('script');
+  s.src='https://docs.opencv.org/4.x/opencv.js';
+  s.async=true;
+  s.type='text/javascript';
+
+  s.onload=()=>{
+    // Do not mark Ready here. The runtime callback above is authoritative.
+    if(!cvReady){
+      updateMetrics('Starting',0,0);
+      setHint('Edge engine downloaded — starting…','');
+    }
+  };
+
+  s.onerror=()=>{
+    opencvLoadError=true;
+    updateMetrics('Failed',0,0);
+    setHint('Could not download edge engine — check internet connection','');
+  };
+
+  document.head.appendChild(s);
 }
 
 async function startScanner(){
@@ -279,15 +293,10 @@ async function startScanner(){
     $('scanner').classList.remove('hidden');
     $('scanner').setAttribute('aria-hidden','false');
     setHint('Opening camera…','');
-    updateMetrics('Loading',0,0);
+    updateMetrics(cvReady?'Ready':'Loading',0,0);
 
-    // Start OpenCV and camera in parallel.
-    const cvPromise=loadOpenCV().catch(e=>{
-      console.error('OpenCV:',e);
-      updateMetrics('Failed',0,0);
-      setHint('Edge engine failed — manual Capture still works','');
-      return null;
-    });
+    // Begin the OpenCV download, but do not block the camera while it loads.
+    requestOpenCV();
 
     stream=await navigator.mediaDevices.getUserMedia({
       video:{
@@ -304,14 +313,14 @@ async function startScanner(){
     stableFrames=0;
     lastQuad=null;
     detectorStarted=true;
-    setHint('Camera ready — loading edge engine…','');
 
-    await cvPromise;
     if(cvReady){
       setHint('Edge engine ready — point at a document','ready');
-      startDetectionLoop();
+      if(!scanTimer) startDetectionLoop();
+    }else if(opencvLoadError){
+      setHint('Camera ready — edge engine download failed; manual Capture works','');
     }else{
-      setHint('Camera ready — manual Capture available','');
+      setHint('Camera ready — edge engine is still loading…','');
     }
   }catch(e){
     console.error(e);
@@ -351,7 +360,7 @@ function sizeOverlay(){
 }
 
 function startDetectionLoop(){
-  if(!detectorStarted || !cvReady) return;
+  if(!detectorStarted || !cvReady || !cvApi) return;
   const tick=async()=>{
     if(!detectorStarted) return;
     await processFrame();

@@ -24,31 +24,20 @@ REPLACEMENT STEPS
 5. On iPhone, remove the old Home Screen shortcut if necessary and add FileNest again so iOS refreshes the icon.
 
 
-SCANNER V2 — EDGE ENGINE REBUILD
---------------------------------
-This build rebuilds the document scanner around reliable OpenCV.js initialization.
+SCANNER V3 — OPENCV LOADER FIX
+------------------------------
+The previous scanner could display "Engine Failed" simply because a 15-second
+timeout expired while the large OpenCV.js library was still downloading.
 
-Visible scanner diagnostics:
-- Engine: Loading / Ready / Failed / Error
-- Edges: number of four-corner page candidates detected
-- Stable: progress toward automatic capture (0/8 through 8/8)
+This build:
+- Removes that artificial timeout completely.
+- Uses the official Emscripten Module.onRuntimeInitialized callback.
+- Opens the camera immediately while OpenCV continues loading.
+- Shows Engine "Loading" -> "Starting" -> "Ready".
+- Only displays "Failed" when the actual script download fails.
+- Starts page-edge detection automatically as soon as OpenCV reports ready.
 
-Detection improvements:
-- Handles OpenCV.js builds where cv initializes asynchronously or as a Promise.
-- CLAHE contrast enhancement for uneven light/shadows.
-- Lower Canny thresholds for softer paper edges.
-- Morphological closing to reconnect broken page borders.
-- Tests several polygon-approximation tolerances.
-- Scores candidates by size, rectangularity, and center position.
-- Draws green corner dots and a green quadrilateral when a page is found.
-- Auto captures only after eight stable detection frames.
-- Manual Capture still works if OpenCV fails.
-
-PHONE TEST:
-1. Replace the hosted index.html with this build.
-2. Force-refresh Safari or remove/re-add the Home Screen shortcut to avoid cached JavaScript.
-3. Open scanner.
-4. Engine should change from Loading to Ready.
-5. Point at a sheet of paper with contrasting background.
-6. Edges should increase above 0 and a green outline/corner dots should appear.
-7. Hold still until Stable reaches 8/8; auto capture should fire.
+FIRST-LAUNCH NOTE:
+OpenCV.js is a large browser library. The first uncached iPhone load may take
+noticeably longer than subsequent loads. Keep the scanner open until Engine
+changes to Ready.
