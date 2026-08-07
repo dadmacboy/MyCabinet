@@ -24,10 +24,31 @@ REPLACEMENT STEPS
 5. On iPhone, remove the old Home Screen shortcut if necessary and add FileNest again so iOS refreshes the icon.
 
 
-SCANNER FIX
------------
-This build fixes the scanner capture lock:
-- Frame edge-analysis and camera capture now use separate processing states.
-- Auto-capture is deferred until frame analysis releases its lock.
-- Manual Capture remains available while OpenCV is loading/analyzing.
-- Scanner status is mirrored above the camera controls so you can see whether it is detecting, holding, or capturing.
+SCANNER V2 — EDGE ENGINE REBUILD
+--------------------------------
+This build rebuilds the document scanner around reliable OpenCV.js initialization.
+
+Visible scanner diagnostics:
+- Engine: Loading / Ready / Failed / Error
+- Edges: number of four-corner page candidates detected
+- Stable: progress toward automatic capture (0/8 through 8/8)
+
+Detection improvements:
+- Handles OpenCV.js builds where cv initializes asynchronously or as a Promise.
+- CLAHE contrast enhancement for uneven light/shadows.
+- Lower Canny thresholds for softer paper edges.
+- Morphological closing to reconnect broken page borders.
+- Tests several polygon-approximation tolerances.
+- Scores candidates by size, rectangularity, and center position.
+- Draws green corner dots and a green quadrilateral when a page is found.
+- Auto captures only after eight stable detection frames.
+- Manual Capture still works if OpenCV fails.
+
+PHONE TEST:
+1. Replace the hosted index.html with this build.
+2. Force-refresh Safari or remove/re-add the Home Screen shortcut to avoid cached JavaScript.
+3. Open scanner.
+4. Engine should change from Loading to Ready.
+5. Point at a sheet of paper with contrasting background.
+6. Edges should increase above 0 and a green outline/corner dots should appear.
+7. Hold still until Stable reaches 8/8; auto capture should fire.
