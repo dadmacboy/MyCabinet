@@ -48,7 +48,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   </header>
 
   <section class="card">
-    <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>Use the document scanner for edge detection and auto-capture, or choose an existing file.</p></div></div>
+    <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>Use the document scanner for edge detection and auto-capture, or choose an existing file. After scanning, FileNest keeps the prepared PDF/JPEG here until you choose where to save it.</p></div></div>
     <div class="actions">
       <button class="primary" id="openScannerBtn">▣ Scan document</button>
       <label class="buttonLabel secondary" for="fileInput">＋ Choose existing file</label>
@@ -127,11 +127,11 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
       <button type="button" id="formatPdf" class="active">📄 PDF — Document</button>
       <button type="button" id="formatJpeg">🖼️ JPEG — Image</button>
     </div>
-    <div id="formatHelp" class="small" style="color:#a9d8d1;margin-top:7px">PDF is recommended for records and official documents.</div>
+    <div id="formatHelp" class="small" style="color:#a9d8d1;margin-top:7px">PDF is recommended for records and official documents. “Use Scan & Continue” prepares the file; you choose its final save destination afterward.</div>
   </div>
   <div class="reviewActions">
     <button id="retakeScan" class="closeBtn">↶ Retake</button>
-    <button id="useScan" class="cameraBtn">✓ Use Scan</button>
+    <button id="useScan" class="cameraBtn">✓ Use Scan & Continue</button>
   </div>
 </div>
 
@@ -267,19 +267,49 @@ $('retakeScan').onclick=()=>{
 $('useScan').onclick=async()=>{
   if(!pendingScanBlob)return;
   try{
-    let file;
+    $('useScan').disabled=true;
+    $('useScan').textContent='Preparing…';
+
+    let file,formatLabel;
     if(scanOutputFormat==='pdf'){
       const pdfBlob=await jpegBlobToPdfBlob(pendingScanBlob,pendingScanWidth,pendingScanHeight);
       file=new File([pdfBlob],`Scan_${today}.pdf`,{type:'application/pdf',lastModified:Date.now()});
+      formatLabel='PDF';
       selectFile(file,'Scanned document • PDF');
     }else{
       file=new File([pendingScanBlob],`Scan_${today}.jpg`,{type:'image/jpeg',lastModified:Date.now()});
+      formatLabel='JPEG';
       selectFile(file,'Scanned document • JPEG');
     }
+
+    // Keep the corrected scan image visible even when the active file is a PDF.
+    if(pendingScanURL){
+      $('thumb').src=pendingScanURL;
+      $('thumb').style.display='inline-block';
+    }
+
+    const kb=(file.size/1024).toFixed(1);
+    $('fileInfo').textContent=`✓ ${formatLabel} scan ready to file • ${kb} KB`;
+
+    // Visible confirmation near Step 1.
+    $('scannerAvailability').textContent=
+      `${formatLabel} scan prepared successfully. Continue below to classify, name, and save it.`;
+    $('scannerAvailability').classList.remove('hidden');
+    $('scannerAvailability').classList.add('success');
+
     hideReview();
+
+    // Move directly into Step 2 instead of making the scan appear to vanish.
+    const cards=document.querySelectorAll('.card');
+    if(cards[1]){
+      setTimeout(()=>cards[1].scrollIntoView({behavior:'smooth',block:'start'}),80);
+    }
   }catch(e){
     console.error('Could not prepare scan output',e);
     $('reviewQuality').textContent='Could not create selected format — try JPEG';
+  }finally{
+    $('useScan').disabled=false;
+    $('useScan').textContent='✓ Use Scan & Continue';
   }
 };
 
@@ -304,7 +334,7 @@ function setHint(text,state){
 }
 function availability(msg){
   $('scannerAvailability').textContent=msg;
-  $('scannerAvailability').classList.remove('hidden');
+  $('scannerAvailability').classList.remove('hidden','success');
 }
 
 async function startScanner(){

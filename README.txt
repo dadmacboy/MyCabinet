@@ -1,36 +1,18 @@
-FileNest — PDF/JPEG Scan Output Update
-=========================================
+FileNest — Scan Handoff Fix
+================================
 
-This build preserves the working native scanner and does NOT change the
-document-corner detection algorithm.
+This build does NOT change the working document detector.
 
-NEW SCAN OUTPUT FLOW
-1. Scan / auto-capture the document.
-2. Review the perspective-corrected scan.
-3. Choose:
-   - PDF — Document (default)
-   - JPEG — Image
-4. Tap Use Scan.
-5. FileNest continues to classification, naming, and filing.
+FIXED
+- "Use Scan" is now labeled "Use Scan & Continue."
+- After choosing PDF or JPEG, FileNest visibly retains the corrected scan.
+- PDF scans still show the scanned-page image as a preview.
+- Step 1 displays a clear "PDF/JPEG scan prepared successfully" confirmation.
+- FileNest automatically scrolls to Step 2 for classification/naming.
+- The prepared scan remains the active document until you save/share it.
+- Final saving still happens through Proton Drive, Google Drive, Files / Device,
+  or Share Elsewhere in Step 4.
 
-PDF
-- Default for scanned documents.
-- Creates a real single-page PDF containing the corrected scan.
-- Recommended for records, receipts, official documents, and archives.
-
-JPEG
-- Creates a .jpg image.
-- Useful when a website does not accept PDF and requires a picture.
-
-NO EXTRA TEXT FILE
-- The iOS Share Sheet payload now shares ONLY the document file.
-- The previous "Suggested folder" text was removed from the share payload
-  because iOS/receiving apps can treat shared text as an additional text item.
-- Scanning itself does not create any .txt file.
-- "Export filing record (JSON)" remains an optional manual button. It only
-  creates a JSON record when you deliberately tap it.
-
-IMPORTANT
-- Upload all files in this ZIP to the GitHub repository root.
-- Replace the current index.html.
-- The scanner detector itself is unchanged from the working Native Scanner build.
+WHY THIS MATTERS
+Previously the PDF was created correctly, but the review overlay closed and PDF
+preview was hidden. That made the scan look as if it had disappeared.
