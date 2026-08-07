@@ -1,18 +1,19 @@
-FileNest — Scan Handoff Fix
-================================
+FileNest — PDF Creation Fix
+============================
 
-This build does NOT change the working document detector.
+This build keeps the working native scanner unchanged.
 
-FIXED
-- "Use Scan" is now labeled "Use Scan & Continue."
-- After choosing PDF or JPEG, FileNest visibly retains the corrected scan.
-- PDF scans still show the scanned-page image as a preview.
-- Step 1 displays a clear "PDF/JPEG scan prepared successfully" confirmation.
-- FileNest automatically scrolls to Step 2 for classification/naming.
-- The prepared scan remains the active document until you save/share it.
-- Final saving still happens through Proton Drive, Google Drive, Files / Device,
-  or Share Elsewhere in Step 4.
+PDF FIX
+- Replaced the previous mixed-chunk PDF generator with a contiguous Uint8Array build.
+- This is more reliable in mobile Safari.
+- PDF creation now validates that the generated Blob and File are non-empty.
+- The Review Scan screen stays open if PDF creation fails.
+- Any PDF error is shown directly on the review screen instead of silently closing.
+- JPEG behavior is unchanged.
 
-WHY THIS MATTERS
-Previously the PDF was created correctly, but the review overlay closed and PDF
-preview was hidden. That made the scan look as if it had disappeared.
+TEST
+1. Scan a document.
+2. Leave PDF selected.
+3. Tap Use Scan & Continue.
+4. You should see "Creating PDF…" briefly.
+5. Then FileNest should show "PDF scan ready to file" and move to Step 2.

@@ -272,10 +272,21 @@ $('useScan').onclick=async()=>{
 
     let file,formatLabel;
     if(scanOutputFormat==='pdf'){
+      $('reviewQuality').textContent='Creating PDF…';
       const pdfBlob=await jpegBlobToPdfBlob(pendingScanBlob,pendingScanWidth,pendingScanHeight);
-      file=new File([pdfBlob],`Scan_${today}.pdf`,{type:'application/pdf',lastModified:Date.now()});
+      if(!pdfBlob || !pdfBlob.size) throw new Error('PDF creation returned an empty file');
+
+      file=new File(
+        [pdfBlob],
+        `Scan_${today}.pdf`,
+        {type:'application/pdf',lastModified:Date.now()}
+      );
+
+      if(!file.size) throw new Error('PDF file was empty');
+
       formatLabel='PDF';
       selectFile(file,'Scanned document • PDF');
+      $('reviewQuality').textContent='PDF prepared';
     }else{
       file=new File([pendingScanBlob],`Scan_${today}.jpg`,{type:'image/jpeg',lastModified:Date.now()});
       formatLabel='JPEG';
@@ -306,7 +317,9 @@ $('useScan').onclick=async()=>{
     }
   }catch(e){
     console.error('Could not prepare scan output',e);
-    $('reviewQuality').textContent='Could not create selected format — try JPEG';
+    $('reviewQuality').textContent='PDF error: ' + (e && e.message ? e.message : 'unknown error');
+    $('scannerAvailability').textContent='The PDF could not be prepared. The scan is still here; choose JPEG or try PDF again.';
+    $('scannerAvailability').classList.remove('hidden');
   }finally{
     $('useScan').disabled=false;
     $('useScan').textContent='✓ Use Scan & Continue';
@@ -657,73 +670,108 @@ async function captureScan(quad,analysisW,analysisH){
 }
 
 async function jpegBlobToPdfBlob(jpegBlob,imgW,imgH){
-  if(!imgW||!imgH)throw new Error('Missing scan dimensions');
-  const jpeg=new Uint8Array(await jpegBlob.arrayBuffer());
-  const enc=new TextEncoder();
-  const parts=[];
-  const offsets=[0];
-  let length=0;
+  if(!jpegBlob || !imgW || !imgH) throw new Error('Missing scan image or dimensions');
 
-  const addBytes=(bytes)=>{
-    parts.push(bytes);
-    length+=bytes.length;
-  };
-  const addText=(text)=>addBytes(enc.encode(text));
-  const startObj=(n)=>{
-    offsets[n]=length;
-    addText(`${n} 0 obj\n`);
-  };
-  const endObj=()=>addText(`\nendobj\n`);
+  const jpeg = new Uint8Array(await jpegBlob.arrayBuffer());
 
-  // US Letter page, portrait or landscape, with a small white margin.
-  const portrait=imgH>=imgW;
-  const pageW=portrait?612:792;
-  const pageH=portrait?792:612;
-  const margin=18;
-  const scale=Math.min((pageW-margin*2)/imgW,(pageH-margin*2)/imgH);
-  const drawW=imgW*scale;
-  const drawH=imgH*scale;
-  const x=(pageW-drawW)/2;
-  const y=(pageH-drawH)/2;
+  // Standard US Letter points. Rotate the page for landscape scans.
+  const portrait = imgH >= imgW;
+  const pageW = portrait ? 612 : 792;
+  const pageH = portrait ? 792 : 612;
+  const margin = 18;
+  const scale = Math.min((pageW-margin*2)/imgW, (pageH-margin*2)/imgH);
+  const drawW = imgW*scale;
+  const drawH = imgH*scale;
+  const x = (pageW-drawW)/2;
+  const y = (pageH-drawH)/2;
 
-  addText('%PDF-1.4\n%FileNest\n');
+  const encoder = new TextEncoder();
+  const chunks = [];
+  const offsets = new Array(6).fill(0);
+  let total = 0;
 
-  startObj(1);
-  addText('<< /Type /Catalog /Pages 2 0 R >>');
-  endObj();
-
-  startObj(2);
-  addText('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
-  endObj();
-
-  startObj(3);
-  addText(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
-  endObj();
-
-  startObj(4);
-  addText(`<< /Type /XObject /Subtype /Image /Width ${imgW} /Height ${imgH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`);
-  addBytes(jpeg);
-  addText('\nendstream');
-  endObj();
-
-  const content=`q\n${drawW.toFixed(3)} 0 0 ${drawH.toFixed(3)} ${x.toFixed(3)} ${y.toFixed(3)} cm\n/Im0 Do\nQ\n`;
-  const contentBytes=enc.encode(content);
-  startObj(5);
-  addText(`<< /Length ${contentBytes.length} >>\nstream\n`);
-  addBytes(contentBytes);
-  addText('endstream');
-  endObj();
-
-  const xrefOffset=length;
-  addText('xref\n0 6\n');
-  addText('0000000000 65535 f \n');
-  for(let i=1;i<=5;i++){
-    addText(String(offsets[i]).padStart(10,'0')+' 00000 n \n');
+  function pushBytes(bytes){
+    chunks.push(bytes);
+    total += bytes.length;
   }
-  addText(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);
+  function pushText(text){
+    pushBytes(encoder.encode(text));
+  }
+  function beginObj(n){
+    offsets[n] = total;
+    pushText(n + ' 0 obj\n');
+  }
+  function endObj(){
+    pushText('\nendobj\n');
+  }
 
-  return new Blob(parts,{type:'application/pdf'});
+  pushText('%PDF-1.4\n');
+
+  beginObj(1);
+  pushText('<< /Type /Catalog /Pages 2 0 R >>');
+  endObj();
+
+  beginObj(2);
+  pushText('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  endObj();
+
+  beginObj(3);
+  pushText(
+    '<< /Type /Page /Parent 2 0 R ' +
+    '/MediaBox [0 0 ' + pageW + ' ' + pageH + '] ' +
+    '/Resources << /XObject << /Im0 4 0 R >> >> ' +
+    '/Contents 5 0 R >>'
+  );
+  endObj();
+
+  beginObj(4);
+  pushText(
+    '<< /Type /XObject /Subtype /Image ' +
+    '/Width ' + imgW + ' /Height ' + imgH + ' ' +
+    '/ColorSpace /DeviceRGB /BitsPerComponent 8 ' +
+    '/Filter /DCTDecode /Length ' + jpeg.length + ' >>\nstream\n'
+  );
+  pushBytes(jpeg);
+  pushText('\nendstream');
+  endObj();
+
+  const content =
+    'q\n' +
+    drawW.toFixed(3) + ' 0 0 ' + drawH.toFixed(3) + ' ' +
+    x.toFixed(3) + ' ' + y.toFixed(3) + ' cm\n' +
+    '/Im0 Do\nQ\n';
+  const contentBytes = encoder.encode(content);
+
+  beginObj(5);
+  pushText('<< /Length ' + contentBytes.length + ' >>\nstream\n');
+  pushBytes(contentBytes);
+  pushText('endstream');
+  endObj();
+
+  const xrefOffset = total;
+  pushText('xref\n0 6\n');
+  pushText('0000000000 65535 f \n');
+  for(let i=1;i<=5;i++){
+    pushText(String(offsets[i]).padStart(10,'0') + ' 00000 n \n');
+  }
+  pushText(
+    'trailer\n<< /Size 6 /Root 1 0 R >>\n' +
+    'startxref\n' + xrefOffset + '\n%%EOF\n'
+  );
+
+  // Safari is more reliable when the PDF is built as one contiguous buffer.
+  const pdfBytes = new Uint8Array(total);
+  let pos = 0;
+  for(const chunk of chunks){
+    pdfBytes.set(chunk, pos);
+    pos += chunk.length;
+  }
+
+  const blob = new Blob([pdfBytes.buffer], {type:'application/pdf'});
+  if(!blob.size) throw new Error('Generated PDF was empty');
+  return blob;
 }
+
 
 function hideReview(){
   $('scanReview').classList.add('hidden');
