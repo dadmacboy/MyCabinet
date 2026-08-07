@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0f766e" />
+<title>Smart File Cabinet</title>
+<style>
+:root{--bg:#f4f7f7;--card:#fff;--ink:#173131;--muted:#617676;--brand:#0f766e;--brand2:#14b8a6;--line:#d8e3e2;--warn:#9a6700;--danger:#b42318;--shadow:0 12px 28px rgba(15,118,110,.10)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#e9f7f5 0,#f7f9f9 220px);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+.app{max-width:760px;margin:auto;padding:18px 16px 44px}.hero{padding:18px 4px 14px}.hero h1{margin:0;font-size:clamp(28px,8vw,44px);letter-spacing:-.04em}.hero p{margin:.35rem 0 0;color:var(--muted)}
+.card{background:var(--card);border:1px solid rgba(15,118,110,.12);border-radius:22px;padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+.step{display:flex;gap:12px;align-items:flex-start}.num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#d9f3ef;color:var(--brand);font-weight:800;flex:0 0 auto}.step h2{margin:2px 0 4px;font-size:20px}.step p{margin:0;color:var(--muted)}
+label{display:block;font-weight:700;margin:14px 0 6px}input,select,textarea,button{font:inherit}input[type=text],input[type=date],input[type=number],select,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:white;color:var(--ink)}textarea{min-height:90px;resize:vertical}.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:600px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
+.filebox{border:2px dashed #9bcac4;border-radius:18px;padding:22px;text-align:center;background:#f7fffd}.filebox input{width:100%}.thumb{margin-top:12px;max-width:100%;max-height:260px;border-radius:14px;display:none}.small{font-size:13px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.chip{border:1px solid #b7d8d3;background:#f4fffd;color:#155e57;padding:8px 11px;border-radius:999px;cursor:pointer}.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+button{border:0;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer}.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}.secondary{background:#e9f2f1;color:#174d49}.danger{background:#feeceb;color:var(--danger)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.actions button{flex:1 1 180px}
+.preview{background:#102f2d;color:#eafffb;border-radius:16px;padding:16px;overflow-wrap:anywhere}.preview .folder{color:#9be6db}.preview .name{font-weight:800;font-size:18px;margin-top:8px}.status{padding:10px 12px;border-radius:12px;background:#fff6d8;color:var(--warn);margin-top:12px}.hidden{display:none!important}.rule{border-top:1px solid var(--line);padding:12px 0}.rule:first-child{border-top:0}.rule strong{display:block}.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}.toggle{display:flex;gap:8px;align-items:center;margin-top:10px}.toggle input{width:20px;height:20px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero">
+    <h1>Smart File Cabinet</h1>
+    <p>A private, no-subscription prototype that names and organizes scans using your rules.</p>
+  </header>
+
+  <section class="card">
+    <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>On iPhone, tap below and choose the camera.</p></div></div>
+    <div class="filebox" style="margin-top:14px">
+      <input id="fileInput" type="file" accept="image/*,.pdf" capture="environment" />
+      <img id="thumb" class="thumb" alt="Document preview" />
+      <div id="fileInfo" class="small" style="margin-top:10px">No document selected.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="step"><div class="num">2</div><div><h2>What kind of item is it?</h2><p>The app changes its questions based on your choice.</p></div></div>
+    <div id="categoryChips" class="chips"></div>
+    <label for="category">Category</label>
+    <select id="category"></select>
+    <div id="dynamicFields" class="grid two"></div>
+    <label for="notes">Optional notes</label>
+    <textarea id="notes" placeholder="Anything useful for finding this later"></textarea>
+  </section>
+
+  <section class="card">
+    <div class="step"><div class="num">3</div><div><h2>Review the suggested filing</h2><p>Edit anything before saving.</p></div></div>
+    <div class="preview" style="margin-top:14px">
+      <div class="folder" id="folderPreview">/Unsorted/</div>
+      <div class="name" id="filenamePreview">Document_2026-08-06</div>
+    </div>
+    <div class="grid two">
+      <div><label for="folderEdit">Folder</label><input id="folderEdit" type="text"></div>
+      <div><label for="filenameEdit">Filename</label><input id="filenameEdit" type="text"></div>
+    </div>
+    <div class="toggle"><input id="rememberRule" type="checkbox"><label for="rememberRule" style="margin:0">Remember this as my preferred pattern</label></div>
+    <div class="actions">
+      <button class="primary" id="saveBtn">Save renamed copy</button>
+      <button class="secondary" id="manifestBtn">Download filing record</button>
+      <button class="danger" id="resetBtn">Start over</button>
+    </div>
+    <div id="saveStatus" class="status hidden"></div>
+  </section>
+
+  <section class="card">
+    <div class="step"><div class="num">4</div><div><h2>Saved rules on this phone</h2><p>These stay only in your browser.</p></div></div>
+    <div id="rulesList" style="margin-top:10px"></div>
+    <div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
+  </section>
+
+  <div class="footer">No account, no cloud AI, no document upload. Everything runs in your browser.</div>
+</div>
+<script>
+const today = new Date().toISOString().slice(0,10);
+const definitions = {
+  "Vehicle Maintenance": {folder:"Vehicles/{Vehicle}/Maintenance/{Year}", pattern:"{Vehicle}_{Service}_{Odometer}_{Date}", fields:[
+    ["Vehicle","text","e.g., Toyota Aqua"],["Service","select",["Oil Change","Tires","Brakes","Battery","Inspection","Repair","Other"]],["Odometer","number","e.g., 52345"],["Date","date",today],["Shop","text","e.g., Yellow Hat"]]},
+  "Recipe": {folder:"Recipes/{Recipe Category}", pattern:"Recipe_{Title}_{Main Ingredient}", fields:[
+    ["Title","text","Recipe name"],["Recipe Category","select",["Breakfast","Chicken","Beef","Pork","Seafood","Vegetarian","Pasta","Soup","Bread","Dessert","Drink","Other"]],["Main Ingredient","text","Main ingredient"],["Cuisine","text","e.g., Spanish"],["Rating","select",["Not rated","1 star","2 stars","3 stars","4 stars","5 stars"]]]},
+  "VA / Military": {folder:"VA/{Document Type}/{Year}", pattern:"VA_{Document Type}_{Person}_{Date}", fields:[
+    ["Document Type","select",["Rating Decision","Statement of Benefits","Claim","Appeal","Medical Record","Education Benefit","DD214","Orders","Award","Other"]],["Person","text","Family member"],["Date","date",today],["Claim or Reference","text","Optional claim/reference number"]]},
+  "Medical": {folder:"Medical/{Person}/{Year}", pattern:"{Person}_{Provider}_{Document Type}_{Date}", fields:[
+    ["Person","text","Patient"],["Provider","text","Hospital or provider"],["Document Type","select",["Visit Summary","Lab Result","Imaging","Prescription","Referral","Bill","EOB","Dental","Vision","Other"]],["Date","date",today]]},
+  "Education": {folder:"Education/{Person}/{School}", pattern:"{Person}_{School}_{Document Type}_{Term}", fields:[
+    ["Person","text","Student"],["School","text","School name"],["Document Type","select",["Transcript","Enrollment","Tuition","Acceptance","Certificate","Diploma","Assignment","Other"]],["Term","text","e.g., Fall 2026"]]},
+  "Employment": {folder:"Employment/{Employer}/{Year}", pattern:"{Employer}_{Document Type}_{Date}", fields:[
+    ["Employer","text","Employer"],["Document Type","select",["Resume","Cover Letter","Offer Letter","Contract","Pay Stub","Evaluation","Training","Application","Other"]],["Date","date",today],["Position","text","Job title"]]},
+  "Home / Purchase": {folder:"Home/{Item}/{Document Type}", pattern:"{Brand}_{Item}_{Document Type}_{Date}", fields:[
+    ["Item","text","e.g., Refrigerator"],["Brand","text","Brand"],["Document Type","select",["Receipt","Warranty","Manual","Installation","Repair","Insurance","Other"]],["Date","date",today],["Serial Number","text","Optional"]]},
+  "Financial / Tax": {folder:"Financial/{Document Type}/{Year}", pattern:"{Institution}_{Document Type}_{Tax Year}_{Date}", fields:[
+    ["Institution","text","Bank, employer, agency"],["Document Type","select",["Tax Return","W-2","1099","Bank Statement","Credit Card Statement","Loan","Investment","Receipt","Other"]],["Tax Year","text","e.g., 2026"],["Date","date",today]]},
+  "Personal / Legal": {folder:"Personal/{Person}/{Document Type}", pattern:"{Person}_{Document Type}_{Date}", fields:[
+    ["Person","text","Person"],["Document Type","select",["Passport","Birth Certificate","Marriage Certificate","Will","Power of Attorney","ID","Citizenship","Immigration","Contract","Other"]],["Date","date",today]]},
+  "Other": {folder:"Unsorted/{Year}", pattern:"{Title}_{Date}", fields:[["Title","text","Document title"],["Date","date",today]]}
+};
+
+const $=id=>document.getElementById(id); let selectedFile=null; let generated={folder:"",name:""};
+function sanitize(v){return String(v||"").trim().replace(/[\\/:*?"<>|#%{}~&]/g," ").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
+function values(){const out={Year:new Date().getFullYear()}; document.querySelectorAll('[data-field]').forEach(el=>out[el.dataset.field]=el.value); return out}
+function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
+function extension(){if(!selectedFile)return ".pdf"; const n=selectedFile.name||""; const m=n.match(/\.[^.]+$/); return m?m[0].toLowerCase():(selectedFile.type.includes("pdf")?".pdf":".jpg")}
+function updatePreview(){const d=definitions[$('category').value], v=values(); v.Year=(v.Date||today).slice(0,4)||new Date().getFullYear(); let saved=getRules()[$('category').value]; let folder=applyTemplate(saved?.folder||d.folder,v); let name=applyTemplate(saved?.pattern||d.pattern,v); folder="/"+folder.replace(/^\/+|\/+$/g,"")+"/"; name=(name||"Document_"+today)+extension(); generated={folder,name}; $('folderPreview').textContent=folder; $('filenamePreview').textContent=name; $('folderEdit').value=folder; $('filenameEdit').value=name}
+function renderFields(){const cat=$('category').value,d=definitions[cat]; $('dynamicFields').innerHTML=""; d.fields.forEach(([name,type,arg])=>{const wrap=document.createElement('div'); const lab=document.createElement('label'); lab.textContent=name; const el=document.createElement(type==='select'?'select':'input'); el.dataset.field=name; if(type==='select'){arg.forEach(o=>{let op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op)})}else{el.type=type; if(type==='date')el.value=arg||today; else el.placeholder=arg||""} el.addEventListener('input',updatePreview); wrap.append(lab,el); $('dynamicFields').appendChild(wrap)}); updatePreview(); syncChips()}
+function syncChips(){document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.cat===$('category').value))}
+function initCategories(){Object.keys(definitions).forEach(cat=>{let op=document.createElement('option');op.value=cat;op.textContent=cat;$('category').appendChild(op); let b=document.createElement('button');b.type='button';b.className='chip';b.dataset.cat=cat;b.textContent=cat;b.onclick=()=>{$('category').value=cat;renderFields()};$('categoryChips').appendChild(b)}); $('category').value='Vehicle Maintenance'; $('category').onchange=renderFields; renderFields()}
+$('fileInput').addEventListener('change',e=>{selectedFile=e.target.files[0]||null; if(!selectedFile){$('fileInfo').textContent='No document selected.';return} $('fileInfo').textContent=`${selectedFile.name} • ${(selectedFile.size/1024).toFixed(1)} KB`; if(selectedFile.type.startsWith('image/')){const u=URL.createObjectURL(selectedFile);$('thumb').src=u;$('thumb').style.display='inline-block'}else{$('thumb').style.display='none'} updatePreview()});
+function getRules(){try{return JSON.parse(localStorage.getItem('smartFileRules')||'{}')}catch{return {}}}
+function setRules(r){localStorage.setItem('smartFileRules',JSON.stringify(r));renderRules()}
+function remember(){if(!$('rememberRule').checked)return; const r=getRules(); r[$('category').value]={folder:$('folderEdit').value.replace(/^\/+|\/+$/g,''),pattern:$('filenameEdit').value.replace(/\.[^.]+$/,'')}; setRules(r)}
+function renderRules(){const r=getRules(),keys=Object.keys(r); $('rulesList').innerHTML=keys.length?'':'<div class="small">No saved rules yet.</div>'; keys.forEach(k=>{let d=document.createElement('div');d.className='rule';d.innerHTML=`<strong>${k}</strong><span class="small">${r[k].folder}<br>${r[k].pattern}</span>`;$('rulesList').appendChild(d)})}
+$('saveBtn').onclick=()=>{if(!selectedFile){show('Choose or scan a document first.');return} remember(); const a=document.createElement('a');a.href=URL.createObjectURL(selectedFile);a.download=$('filenameEdit').value||generated.name;document.body.appendChild(a);a.click();a.remove();show(`Saved a renamed copy. File it in ${$('folderEdit').value}. On iPhone, use the Share button to move it into Proton Drive.`)};
+$('manifestBtn').onclick=()=>{remember(); const record={created:new Date().toISOString(),category:$('category').value,folder:$('folderEdit').value,filename:$('filenameEdit').value,answers:values(),notes:$('notes').value,original:selectedFile?.name||null}; const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=($('filenameEdit').value||'filing-record').replace(/\.[^.]+$/,'')+'_record.json';a.click();show('Downloaded the filing record.');};
+$('resetBtn').onclick=()=>{selectedFile=null;$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.')};
+$('clearRules').onclick=()=>{localStorage.removeItem('smartFileRules');renderRules();show('Saved rules cleared.')};
+$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
+function show(msg){$('saveStatus').textContent=msg;$('saveStatus').classList.remove('hidden')}
+initCategories();renderRules();
+</script>
+</body>
+</html>
