@@ -1,51 +1,24 @@
-FileNest — Zero-Cost Prototype v2
-=================================
+FileNest — FINAL replacement package
+====================================
 
-WHAT CHANGED
-- Added a real browser-based document scanner mode.
-- Detects the largest four-sided document edge using OpenCV.js.
-- Draws a green outline around the detected document.
-- Auto-captures once the document is large enough and stable.
-- Perspective-corrects/crops the captured page.
-- Manual Capture remains available as a fallback.
-- Added Civic / Voter document type, including Voter Registration.
-- Added explicit Save to Proton Drive, Save to Google Drive, Save to Files, and Share Elsewhere actions.
-- Proton/Google buttons use the iPhone Share Sheet. FileNest renames the file first and tells you the suggested folder.
+MAIN FILE
+- Use index.html as the app.
+- This replaces the prior FileNest_v3.html file.
+- If you are updating an existing static host/repository, delete the old HTML file after index.html is uploaded and confirmed working.
 
-IMPORTANT IPHONE CAMERA REQUIREMENT
-The scanner uses the browser camera API. Safari requires a secure HTTPS page for camera access.
-Opening index.html directly from the iPhone Files app may allow the rest of the prototype to run, but camera scanning may not work.
+IPHONE ICON
+- apple-touch-icon.png is used by Safari Add to Home Screen.
+- filenest-icon-1024.png is the full-size icon for Shortcuts/manual icon selection.
+- Keep all files from this ZIP in the same folder.
 
-Best free test method:
-1. Put index.html on GitHub Pages or another free HTTPS static host.
-2. Open the HTTPS link in Safari on the iPhone.
-3. Allow Camera permission.
-4. Tap Scan document.
-5. Hold the document flat with all four edges visible.
-6. A green outline should appear.
-7. When stable, it auto-captures and perspective-corrects the page.
+IMPORTANT
+- Camera scanning still requires HTTPS in Safari/Chrome.
+- If you open index.html directly from Files, basic app functions may work, but camera access can be blocked by iOS.
+- For the phone shortcut/Home Screen app, host this folder on the same HTTPS site you were using before.
 
-PROTON DRIVE / GOOGLE DRIVE
-This version does not directly log into either service.
-On iPhone:
-1. Scan/choose the document.
-2. Review filename and suggested folder.
-3. Tap Save to Proton Drive or Save to Google Drive.
-4. iOS Share Sheet opens with the renamed file.
-5. Select Proton Drive or Google Drive.
-6. Select/create the suggested folder.
-
-That keeps the prototype at zero subscription/API cost and avoids storing credentials.
-
-LIMITATIONS
-- Scanned output is currently a corrected JPEG, not a multi-page PDF.
-- One scanned page per filing action.
-- Edge detection loads OpenCV.js from the free OpenCV CDN, so internet access is needed when the page loads.
-- Browser-based apps cannot automatically navigate/create Proton Drive folders without a supported account integration.
-- No OCR/document auto-classification yet.
-
-NEXT LOGICAL TESTS
-- How well edge detection works on your iPhone under normal lighting.
-- Whether the Share Sheet shows Proton Drive and Google Drive reliably.
-- Whether suggested categories/questions feel natural.
-- Then add multi-page scan-to-PDF and local OCR.
+REPLACEMENT STEPS
+1. Extract this ZIP.
+2. Upload index.html and all included icon/manifest files to the same folder on your host.
+3. Confirm the FileNest page opens.
+4. Delete the older FileNest_v3.html/index file only after the new page works.
+5. On iPhone, remove the old Home Screen shortcut if necessary and add FileNest again so iOS refreshes the icon.

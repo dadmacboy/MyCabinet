@@ -4,7 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#0f766e" />
-<title>FileNest Prototype</title>
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="FileNest" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<title>FileNest</title>
 <style>
 :root{--bg:#f4f7f7;--card:#fff;--ink:#173131;--muted:#617676;--brand:#0f766e;--brand2:#14b8a6;--line:#d8e3e2;--warn:#9a6700;--danger:#b42318;--blue:#2563eb;--purple:#6d28d9;--shadow:0 12px 28px rgba(15,118,110,.10)}
 *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#e9f7f5 0,#f7f9f9 220px);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
@@ -24,7 +30,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 <div class="app">
   <header class="hero">
     <h1>FileNest</h1>
-    <p>Scan it. Name it. File it. A private, no-subscription prototype.</p>
+    <p>Scan it. Identify it. File it into your real Proton Drive structure.</p>
   </header>
 
   <section class="card">
@@ -42,7 +48,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   </section>
 
   <section class="card">
-    <div class="step"><div class="num">2</div><div><h2>What kind of item is it?</h2><p>The app changes its questions based on your choice.</p></div></div>
+    <div class="step"><div class="num">2</div><div><h2>What kind of document is it?</h2><p>Choose the closest match. FileNest maps it to your actual numbered filing system.</p></div></div>
     <div id="categoryChips" class="chips"></div>
     <label for="category">Category</label><select id="category"></select>
     <div id="dynamicFields" class="grid two"></div>
@@ -50,7 +56,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   </section>
 
   <section class="card">
-    <div class="step"><div class="num">3</div><div><h2>Review the suggested filing</h2><p>Edit anything before saving.</p></div></div>
+    <div class="step"><div class="num">3</div><div><h2>Review the suggested filing</h2><p>The path below matches your Proton Drive structure. Edit it only when needed.</p></div></div>
     <div class="preview" style="margin-top:14px">
       <div class="folder" id="folderPreview">/Unsorted/</div><div class="name" id="filenamePreview">Document.pdf</div>
     </div>
@@ -78,7 +84,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
   </section>
 
-  <div class="footer">No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser.</div>
+  <div class="footer">FileNest v3 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
 </div>
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
@@ -97,31 +103,90 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 <script>
 const today = new Date().toISOString().slice(0,10);
 const definitions = {
-  "Vehicle Maintenance": {folder:"Vehicles/{Vehicle}/Maintenance/{Year}", pattern:"{Vehicle}_{Service}_{Odometer}mi_{Date}", fields:[["Vehicle","text","e.g., Toyota Aqua"],["Service","select",["Oil Change","Tires","Brakes","Battery","Inspection","Repair","Other"]],["Odometer","number","e.g., 52345"],["Date","date",today],["Shop","text","e.g., Yellow Hat"]]},
-  "Recipe": {folder:"Recipes/{Recipe Category}", pattern:"Recipe_{Title}_{Main Ingredient}", fields:[["Title","text","Recipe name"],["Recipe Category","select",["Breakfast","Chicken","Beef","Pork","Seafood","Vegetarian","Pasta","Soup","Bread","Dessert","Drink","Other"]],["Main Ingredient","text","Main ingredient"],["Cuisine","text","e.g., Spanish"],["Rating","select",["Not rated","1 star","2 stars","3 stars","4 stars","5 stars"]]]},
-  "Civic / Voter": {folder:"Personal/Civic/{Document Type}", pattern:"{Person}_{Document Type}_{Jurisdiction}_{Date}", fields:[["Person","text","Person"],["Document Type","select",["Voter Registration","Voter Card","Election Notice","Absentee Ballot Request","Civic Record","Other"]],["Jurisdiction","text","State, county, or locality"],["Date","date",today]]},
-  "VA / Military": {folder:"VA/{Document Type}/{Year}", pattern:"VA_{Document Type}_{Person}_{Date}", fields:[["Document Type","select",["Rating Decision","Statement of Benefits","Claim","Appeal","Medical Record","Education Benefit","DD214","Orders","Award","Other"]],["Person","text","Family member"],["Date","date",today],["Claim or Reference","text","Optional claim/reference number"]]},
-  "Medical": {folder:"Medical/{Person}/{Year}", pattern:"{Person}_{Provider}_{Document Type}_{Date}", fields:[["Person","text","Patient"],["Provider","text","Hospital or provider"],["Document Type","select",["Visit Summary","Lab Result","Imaging","Prescription","Referral","Bill","EOB","Dental","Vision","Other"]],["Date","date",today]]},
-  "Education": {folder:"Education/{Person}/{School}", pattern:"{Person}_{School}_{Document Type}_{Term}", fields:[["Person","text","Student"],["School","text","School name"],["Document Type","select",["Transcript","Enrollment","Tuition","Acceptance","Certificate","Diploma","Assignment","Other"]],["Term","text","e.g., Fall 2026"]]},
-  "Employment": {folder:"Employment/{Employer}/{Year}", pattern:"{Employer}_{Document Type}_{Date}", fields:[["Employer","text","Employer"],["Document Type","select",["Resume","Cover Letter","Offer Letter","Contract","Pay Stub","Evaluation","Training","Application","Other"]],["Date","date",today],["Position","text","Job title"]]},
-  "Home / Purchase": {folder:"Home/{Item}/{Document Type}", pattern:"{Brand}_{Item}_{Document Type}_{Date}", fields:[["Item","text","e.g., Refrigerator"],["Brand","text","Brand"],["Document Type","select",["Receipt","Warranty","Manual","Installation","Repair","Insurance","Other"]],["Date","date",today],["Serial Number","text","Optional"]]},
-  "Financial / Tax": {folder:"Financial/{Document Type}/{Year}", pattern:"{Institution}_{Document Type}_{Tax Year}_{Date}", fields:[["Institution","text","Bank, employer, agency"],["Document Type","select",["Tax Return","W-2","1099","Bank Statement","Credit Card Statement","Loan","Investment","Receipt","Other"]],["Tax Year","text","e.g., 2026"],["Date","date",today]]},
-  "Personal / Legal": {folder:"Personal/{Person}/{Document Type}", pattern:"{Person}_{Document Type}_{Date}", fields:[["Person","text","Person"],["Document Type","select",["Passport","Birth Certificate","Marriage Certificate","Will","Power of Attorney","ID","Citizenship","Immigration","Contract","Other"]],["Date","date",today]]},
-  "Other": {folder:"Unsorted/{Year}", pattern:"{Title}_{Date}", fields:[["Title","text","Document title"],["Date","date",today]]}
+  "Personal & Family": {
+    pattern:"{Person}_{Document Type}_{Date}",
+    fields:[["Person","select",["David","Ursula","Romulo","Marcos","Family"]],["Document Type","select",["Identification / ID","Birth Certificate","Marriage Certificate","Civic / Voting","Personal Record","Family Photo","Family Benefits Hub","Other"]],["Date","date",today],["Detail","text","Optional detail"]],
+    resolveFolder(v){const t=v["Document Type"],p=v.Person||"David";if(t==="Identification / ID")return p==="David"?"01 Personal & Family/David/Identification":`01 Personal & Family/${p}/Personal Records`;if(t==="Birth Certificate"||t==="Marriage Certificate")return "01 Personal & Family/Vital Records";if(t==="Civic / Voting")return "01 Personal & Family/Civic & Voting";if(t==="Family Photo")return "01 Personal & Family/Family Photos";if(t==="Family Benefits Hub")return "01 Personal & Family/Family Benefits Hub";if(t==="Personal Record")return p==="David"?"01 Personal & Family/David/Personal Records":`01 Personal & Family/${p}/Personal Records`;return "99 Inbox"}
+  },
+  "Military & Veteran": {
+    pattern:"{Document Type}_{Person}_{Date}",
+    fields:[["Document Type","select",["DD214 / Discharge","Orders","Award","OMPF","Retirement","Separation","Security Clearance","Career Archive","SBP","TSP","Other"]],["Person","text","e.g., David"],["Date","date",today],["Detail","text","Optional detail"]],
+    resolveFolder(v){return ({"DD214 / Discharge":"02 Military & Veteran/Military Records/Separation","Orders":"02 Military & Veteran/Military Records/Orders","Award":"02 Military & Veteran/Military Records/Awards","OMPF":"02 Military & Veteran/Military Records/OMPF","Retirement":"02 Military & Veteran/Military Records/Retirement","Separation":"02 Military & Veteran/Military Records/Separation","Security Clearance":"02 Military & Veteran/Military Records/Security Clearance","Career Archive":"02 Military & Veteran/Military Records/Career Archive","SBP":"02 Military & Veteran/SBP","TSP":"02 Military & Veteran/TSP"})[v["Document Type"]]||"99 Inbox"}
+  },
+  "VA": {
+    pattern:"VA_{Document Type}_{Person}_{Date}",
+    fields:[["Document Type","select",["Claim","Decision","DBQ","Medical Evidence","Education Benefit","Benefits Letter","BDD","Supplemental Education Claim","Other"]],["Person","text","e.g., David"],["Date","date",today],["Claim or Reference","text","Optional claim/reference"]],
+    resolveFolder(v){return ({"Claim":"02 Military & Veteran/VA/Disability/Claims","Decision":"02 Military & Veteran/VA/Disability/Decisions","DBQ":"02 Military & Veteran/VA/Disability/DBQs","Medical Evidence":"02 Military & Veteran/VA/Disability/Medical Evidence","Education Benefit":"02 Military & Veteran/VA/Education","Benefits Letter":"02 Military & Veteran/VA/Benefits","BDD":"02 Military & Veteran/VA/BDD","Supplemental Education Claim":"02 Military & Veteran/VA/Suplemental VA Claim Education"})[v["Document Type"]]||"99 Inbox"}
+  },
+  "Medical": {
+    pattern:"{Person}_{Provider}_{Document Type}_{Date}",
+    fields:[["Person","select",["David","Ursula","Romulo","Marcos"]],["Provider","text","Hospital, clinic, or provider"],["Document Type","select",["Visit Summary","Lab Result","Imaging","Prescription","Referral","Dental","Vision","Medical Record","Other"]],["Date","date",today]],
+    resolveFolder(v){return `03 Medical/${v.Person||"David"}`}
+  },
+  "Financial / Tax": {
+    pattern:"{Institution}_{Document Type}_{Tax Year}_{Date}",
+    fields:[["Document Type","select",["Tax Return","W-2","1099","1095-C","Tax Payment","Banking","Budget","Retirement","Other"]],["Institution","text","Bank, employer, agency"],["Tax Year","text",String(new Date().getFullYear())],["Date","date",today]],
+    resolveFolder(v){const t=v["Document Type"],y=sanitize(v["Tax Year"]||new Date().getFullYear());if(["Tax Return","W-2","1099","1095-C","Tax Payment"].includes(t))return `04 Financial/Taxes/${y}`;if(t==="Banking")return "04 Financial/Banking";if(t==="Budget")return "04 Financial/Budget";if(t==="Retirement")return "04 Financial/Retirement";return "99 Inbox"}
+  },
+  "Employment & Career": {
+    pattern:"{Employer}_{Document Type}_{Position}_{Date}",
+    fields:[["Document Type","select",["Resume","Cover Letter","Application","Offer Letter","Certification","SkillBridge","Previous Work","Other"]],["Employer","text","Employer or organization"],["Position","text","Job title or subject"],["Date","date",today]],
+    resolveFolder(v){return ({"Resume":"05 Employment & Career/Resumes","Cover Letter":"05 Employment & Career/Applications","Application":"05 Employment & Career/Applications","Offer Letter":"05 Employment & Career/Applications","Certification":"05 Employment & Career/Certifications","SkillBridge":"05 Employment & Career/DoWEA Skillbridge","Previous Work":"05 Employment & Career/Previous Work"})[v["Document Type"]]||"99 Inbox"}
+  },
+  "Education": {
+    pattern:"{Person}_{School}_{Document Type}_{Term}",
+    fields:[["Person","select",["David","Ursula","Romulo","Marcos"]],["School","text","School name"],["Document Type","select",["Transcript","Enrollment","Tuition","Acceptance","Certificate","Diploma","Theology Study","Other"]],["Term","text","e.g., Fall 2026"]],
+    resolveFolder(v){const p=v.Person||"David";if(v["Document Type"]==="Theology Study")return "06 Education/Theology";if(p==="Romulo")return "01 Personal & Family/Romulo/Education";if(p==="Marcos")return "01 Personal & Family/Marcos/Education";return "06 Education/David"}
+  },
+  "Home & Property": {
+    pattern:"{Document Type}_{Item}_{Date}",
+    fields:[["Document Type","select",["Housing","Utility","Warranty","Manual","Installation","Repair","Insurance","Property Record","Other"]],["Item","text","Home, appliance, utility, etc."],["Date","date",today],["Provider","text","Optional provider"]],
+    resolveFolder(v){if(v["Document Type"]==="Utility")return "07 Home & Property/Utilities";if(["Housing","Property Record","Insurance"].includes(v["Document Type"]))return "07 Home & Property/Housing";if(["Warranty","Manual","Installation","Repair"].includes(v["Document Type"]))return "07 Home & Property/Housing";return "99 Inbox"}
+  },
+  "Vehicles": {
+    pattern:"{Vehicle}_{Document Type}_{Odometer}mi_{Date}",
+    fields:[["Vehicle","text","e.g., Toyota Aqua"],["Document Type","select",["Maintenance","Registration","Insurance","Inspection","Purchase","Repair","Other"]],["Odometer","number","Optional"],["Date","date",today]],
+    resolveFolder(v){const vehicle=sanitize(v.Vehicle||"Vehicle");const t=sanitize(v["Document Type"]||"Records");return `08 Vehicles/${vehicle}/${t}`}
+  },
+  "Immigration & Travel": {
+    pattern:"{Document Type}_{Person}_{Trip}_{Date}",
+    fields:[["Document Type","select",["Papa Immigration","Passport / Citizenship","Trip","Travel Authorization","Visa / Immigration","Other"]],["Person","text","Person"],["Trip","text","e.g., Spain or Peru 2026"],["Date","date",today]],
+    resolveFolder(v){const t=v["Document Type"];if(t==="Papa Immigration"||t==="Visa / Immigration")return "09 Immigration & Travel/Papa Immigration/Visa Papa";if(t==="Passport / Citizenship")return "09 Immigration & Travel/Passports & Citizenship";if(t==="Travel Authorization")return "09 Immigration & Travel/Travel Authorizations";if(t==="Trip")return `09 Immigration & Travel/Trips/${sanitize(v.Trip||"Trip")}`;return "99 Inbox"}
+  },
+  "Receipts": {
+    pattern:"{Merchant}_{Receipt Type}_{Date}_{Amount}",
+    fields:[["Receipt Type","select",["Purchase","Service","Subscription","Other"]],["Merchant","text","Merchant or provider"],["Amount","text","Optional amount"],["Date","date",today]],
+    resolveFolder(v){return ({"Purchase":"10 Receipts/Purchases","Service":"10 Receipts/Services","Subscription":"10 Receipts/Subscriptions","Other":"10 Receipts/Other"})[v["Receipt Type"]]||"10 Receipts/Other"}
+  },
+  "Reference Library": {
+    pattern:"{Title}_{Date}",
+    fields:[["Document Type","select",["Theology","Mapas de la Palabra","Book","Catholic / Angelus","Other Reference"]],["Title","text","Title"],["Date","date",today]],
+    resolveFolder(v){return ({"Theology":"11 Reference Library/Theology","Mapas de la Palabra":"11 Reference Library/Mapas de la Palabra","Book":"11 Reference Library/Books","Catholic / Angelus":"11 Reference Library/Catholic/Angelus","Other Reference":"11 Reference Library"})[v["Document Type"]]||"11 Reference Library"}
+  },
+  "Technology & Apps": {
+    pattern:"{Document Type}_{Title}_{Date}",
+    fields:[["Document Type","select",["My App","Recovery / Security","Legacy Web File","Other"]],["Title","text","App, file, or project name"],["Date","date",today]],
+    resolveFolder(v){return ({"My App":"12 Technology & Apps/My Apps","Recovery / Security":"12 Technology & Apps/Recovery & Security","Legacy Web File":"12 Technology & Apps/Legacy Web Files"})[v["Document Type"]]||"99 Inbox"}
+  },
+  "Other / Unsure": {
+    pattern:"{Title}_{Date}",
+    fields:[["Title","text","What is this document?"],["Date","date",today]],
+    resolveFolder(){return "99 Inbox"}
+  }
 };
 const $=id=>document.getElementById(id); let selectedFile=null; let generated={folder:"",name:""}; let stream=null; let autoCapture=true; let scanTimer=null; let stableFrames=0; let lastQuad=null; let cvReady=false; let processing=false;
 function sanitize(v){return String(v||"").trim().replace(/[\\/:*?"<>|#%{}~&]/g," ").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
 function values(){const out={Year:new Date().getFullYear()}; document.querySelectorAll('[data-field]').forEach(el=>out[el.dataset.field]=el.value); return out}
 function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
 function extension(){if(!selectedFile)return ".jpg"; const n=selectedFile.name||""; const m=n.match(/\.[^.]+$/); return m?m[0].toLowerCase():(selectedFile.type.includes("pdf")?".pdf":".jpg")}
-function updatePreview(){const d=definitions[$('category').value],v=values();v.Year=(v.Date||today).slice(0,4)||new Date().getFullYear();let saved=getRules()[$('category').value];let folder=applyTemplate(saved?.folder||d.folder,v);let name=applyTemplate(saved?.pattern||d.pattern,v);folder="/"+folder.replace(/^\/+|\/+$/g,"")+"/";name=(name||"Document_"+today)+extension();generated={folder,name};$('folderPreview').textContent=folder;$('filenamePreview').textContent=name;$('folderEdit').value=folder;$('filenameEdit').value=name}
+function updatePreview(){const d=definitions[$('category').value],v=values();v.Year=(v.Date||today).slice(0,4)||new Date().getFullYear();let saved=getRules()[$('category').value];let baseFolder=d.resolveFolder?d.resolveFolder(v):(d.folder||'99 Inbox');let folder=applyTemplate(saved?.folder||baseFolder,v);let name=applyTemplate(saved?.pattern||d.pattern,v);folder="/"+folder.replace(/^\/+|\/+$/g,"")+"/";name=(name||"Document_"+today)+extension();generated={folder,name};$('folderPreview').textContent=folder;$('filenamePreview').textContent=name;$('folderEdit').value=folder;$('filenameEdit').value=name}
 function renderFields(){const cat=$('category').value,d=definitions[cat];$('dynamicFields').innerHTML="";d.fields.forEach(([name,type,arg])=>{const wrap=document.createElement('div'),lab=document.createElement('label');lab.textContent=name;const el=document.createElement(type==='select'?'select':'input');el.dataset.field=name;if(type==='select'){arg.forEach(o=>{let op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op)})}else{el.type=type;if(type==='date')el.value=arg||today;else el.placeholder=arg||""}el.addEventListener('input',updatePreview);wrap.append(lab,el);$('dynamicFields').appendChild(wrap)});updatePreview();syncChips()}
 function syncChips(){document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.cat===$('category').value))}
-function initCategories(){Object.keys(definitions).forEach(cat=>{let op=document.createElement('option');op.value=cat;op.textContent=cat;$('category').appendChild(op);let b=document.createElement('button');b.type='button';b.className='chip';b.dataset.cat=cat;b.textContent=cat;b.onclick=()=>{$('category').value=cat;renderFields()};$('categoryChips').appendChild(b)});$('category').value='Civic / Voter';$('category').onchange=renderFields;renderFields()}
+function initCategories(){Object.keys(definitions).forEach(cat=>{let op=document.createElement('option');op.value=cat;op.textContent=cat;$('category').appendChild(op);let b=document.createElement('button');b.type='button';b.className='chip';b.dataset.cat=cat;b.textContent=cat;b.onclick=()=>{$('category').value=cat;renderFields()};$('categoryChips').appendChild(b)});$('category').value='Financial / Tax';$('category').onchange=renderFields;renderFields()}
 function selectFile(file, label){selectedFile=file;if(!selectedFile){$('fileInfo').textContent='No document selected.';return}$('fileInfo').textContent=`${label||selectedFile.name} • ${(selectedFile.size/1024).toFixed(1)} KB`;if(selectedFile.type.startsWith('image/')){const u=URL.createObjectURL(selectedFile);$('thumb').src=u;$('thumb').style.display='inline-block'}else $('thumb').style.display='none';updatePreview()}
 $('fileInput').addEventListener('change',e=>selectFile(e.target.files[0]||null));
-function getRules(){try{return JSON.parse(localStorage.getItem('smartFileRules')||'{}')}catch{return {}}}
-function setRules(r){localStorage.setItem('smartFileRules',JSON.stringify(r));renderRules()}
+function getRules(){try{return JSON.parse(localStorage.getItem('fileNestRulesV3')||'{}')}catch{return {}}}
+function setRules(r){localStorage.setItem('fileNestRulesV3',JSON.stringify(r));renderRules()}
 function remember(){if(!$('rememberRule').checked)return;const r=getRules();r[$('category').value]={folder:$('folderEdit').value.replace(/^\/+|\/+$/g,''),pattern:$('filenameEdit').value.replace(/\.[^.]+$/,'')};setRules(r)}
 function renderRules(){const r=getRules(),keys=Object.keys(r);$('rulesList').innerHTML=keys.length?'':'<div class="small">No saved rules yet.</div>';keys.forEach(k=>{let d=document.createElement('div');d.className='rule';d.innerHTML=`<strong>${k}</strong><span class="small">${r[k].folder}<br>${r[k].pattern}</span>`;$('rulesList').appendChild(d)})}
 function show(msg,ok=false){$('saveStatus').textContent=msg;$('saveStatus').classList.remove('hidden');$('saveStatus').classList.toggle('success',ok)}
@@ -130,7 +195,7 @@ async function sharePrepared(destination){if(!selectedFile){show('Scan or choose
 function downloadFile(){if(!selectedFile){show('Scan or choose a document first.');return}remember();const a=document.createElement('a');a.href=URL.createObjectURL(selectedFile);a.download=$('filenameEdit').value||generated.name;document.body.appendChild(a);a.click();a.remove()}
 $('protonBtn').onclick=()=>sharePrepared('Proton Drive');$('googleBtn').onclick=()=>sharePrepared('Google Drive');$('shareBtn').onclick=()=>sharePrepared('the app you want');$('saveBtn').onclick=()=>{downloadFile();if(selectedFile)show(`Renamed copy saved. Suggested folder: ${$('folderEdit').value}`,true)};
 $('manifestBtn').onclick=()=>{remember();const record={created:new Date().toISOString(),category:$('category').value,folder:$('folderEdit').value,filename:$('filenameEdit').value,answers:values(),notes:$('notes').value,original:selectedFile?.name||null};const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=($('filenameEdit').value||'filing-record').replace(/\.[^.]+$/,'')+'_record.json';a.click();show('Downloaded the filing record.',true)};
-$('resetBtn').onclick=()=>{selectedFile=null;$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.',true)};$('clearRules').onclick=()=>{localStorage.removeItem('smartFileRules');renderRules();show('Saved rules cleared.',true)};$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
+$('resetBtn').onclick=()=>{selectedFile=null;$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.',true)};$('clearRules').onclick=()=>{localStorage.removeItem('fileNestRulesV3');renderRules();show('Saved rules cleared.',true)};$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
 
 // Scanner
 function cameraSupported(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)}
