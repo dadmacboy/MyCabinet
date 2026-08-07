@@ -89,7 +89,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
       <div class="destination"><h3>📱 Files / Device</h3><p>Downloads a renamed copy to your phone or computer.</p><button class="secondary" id="saveBtn" style="width:100%;margin-top:10px">Save to Files</button></div>
       <div class="destination"><h3>↗️ Other app</h3><p>Share the renamed document using any compatible app.</p><button class="secondary" id="shareBtn" style="width:100%;margin-top:10px">Share elsewhere</button></div>
     </div>
-    <div class="actions"><button class="secondary" id="manifestBtn">Export filing record (JSON)</button><button class="danger" id="resetBtn">Start over</button></div>
+    <div class="actions"><button class="danger" id="resetBtn">Start over</button></div>
     <div id="saveStatus" class="status hidden"></div>
   </section>
 
@@ -138,6 +138,8 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 <canvas id="workCanvas" class="hidden"></canvas>
 <canvas id="resultCanvas" class="hidden"></canvas>
 <script>
+// Scans produce one document only: PDF or JPEG. No TXT/JSON sidecar is created automatically.
+
 const today = new Date().toISOString().slice(0,10);
 const definitions = {
   "Personal & Family": {
@@ -242,10 +244,10 @@ function remember(){if(!$('rememberRule').checked)return;const r=getRules();r[$(
 function renderRules(){const r=getRules(),keys=Object.keys(r);$('rulesList').innerHTML=keys.length?'':'<div class="small">No saved rules yet.</div>';keys.forEach(k=>{let d=document.createElement('div');d.className='rule';d.innerHTML=`<strong>${k}</strong><span class="small">${r[k].folder}<br>${r[k].pattern}</span>`;$('rulesList').appendChild(d)})}
 function show(msg,ok=false){$('saveStatus').textContent=msg;$('saveStatus').classList.remove('hidden');$('saveStatus').classList.toggle('success',ok)}
 function renamedFile(){if(!selectedFile)return null;const filename=$('filenameEdit').value||generated.name;return new File([selectedFile],filename,{type:selectedFile.type||'application/octet-stream',lastModified:Date.now()})}
-async function sharePrepared(destination){if(!selectedFile){show('Scan or choose a document first.');return}remember();const f=renamedFile();const shareData={files:[f],title:'FileNest document'};if(navigator.canShare?.(shareData)){try{await navigator.share(shareData);show(`Share Sheet opened. Choose ${destination}, then file it in ${$('folderEdit').value}.`,true)}catch(e){if(e.name!=='AbortError')show('Sharing was not available. Use Save to Files instead.')}}else{downloadFile();show(`Your browser cannot share files directly. The renamed copy was downloaded. Open it and share it to ${destination}.`)}}
+async function sharePrepared(destination){if(!selectedFile){show('Scan or choose a document first.');return}remember();const f=renamedFile();const shareData={files:[f]};if(navigator.canShare?.(shareData)){try{await navigator.share(shareData);show(`Share Sheet opened. Choose ${destination}, then file it in ${$('folderEdit').value}.`,true)}catch(e){if(e.name!=='AbortError')show('Sharing was not available. Use Save to Files instead.')}}else{downloadFile();show(`Your browser cannot share files directly. The renamed copy was downloaded. Open it and share it to ${destination}.`)}}
 function downloadFile(){if(!selectedFile){show('Scan or choose a document first.');return}remember();const a=document.createElement('a');a.href=URL.createObjectURL(selectedFile);a.download=$('filenameEdit').value||generated.name;document.body.appendChild(a);a.click();a.remove()}
 $('protonBtn').onclick=()=>sharePrepared('Proton Drive');$('googleBtn').onclick=()=>sharePrepared('Google Drive');$('shareBtn').onclick=()=>sharePrepared('the app you want');$('saveBtn').onclick=()=>{downloadFile();if(selectedFile)show(`Renamed copy saved. Suggested folder: ${$('folderEdit').value}`,true)};
-$('manifestBtn').onclick=()=>{remember();const record={created:new Date().toISOString(),category:$('category').value,folder:$('folderEdit').value,filename:$('filenameEdit').value,answers:values(),notes:$('notes').value,original:selectedFile?.name||null};const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=($('filenameEdit').value||'filing-record').replace(/\.[^.]+$/,'')+'_record.json';a.click();show('Downloaded the filing record.',true)};
+
 $('resetBtn').onclick=()=>{selectedFile=null;$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.',true)};$('clearRules').onclick=()=>{localStorage.removeItem('fileNestRulesV3');renderRules();show('Saved rules cleared.',true)};$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
 
 // Scanner — self-contained native JavaScript detector (no OpenCV)
