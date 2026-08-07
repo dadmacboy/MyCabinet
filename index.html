@@ -30,6 +30,11 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 .reviewOverlay{position:fixed;inset:0;background:#071413;z-index:120;color:#fff;display:flex;flex-direction:column}
 .reviewBody{flex:1;min-height:0;display:grid;place-items:center;padding:14px}
 .reviewBody img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;background:#fff}
+.reviewOptions{padding:10px 14px;background:#0b211f;border-top:1px solid rgba(255,255,255,.08)}
+.reviewOptions label{color:#d9fffa;margin:0 0 6px}
+.formatChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.formatChoice button{border:1px solid #456a65;background:#163a36;color:#d9fffa;padding:10px;border-radius:12px}
+.formatChoice button.active{background:#0f766e;color:#fff;border-color:#2dd4bf}
 .reviewActions{display:flex;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}
 .reviewActions button{flex:1}
 
@@ -84,7 +89,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
       <div class="destination"><h3>📱 Files / Device</h3><p>Downloads a renamed copy to your phone or computer.</p><button class="secondary" id="saveBtn" style="width:100%;margin-top:10px">Save to Files</button></div>
       <div class="destination"><h3>↗️ Other app</h3><p>Share the renamed document using any compatible app.</p><button class="secondary" id="shareBtn" style="width:100%;margin-top:10px">Share elsewhere</button></div>
     </div>
-    <div class="actions"><button class="secondary" id="manifestBtn">Download filing record</button><button class="danger" id="resetBtn">Start over</button></div>
+    <div class="actions"><button class="secondary" id="manifestBtn">Export filing record (JSON)</button><button class="danger" id="resetBtn">Start over</button></div>
     <div id="saveStatus" class="status hidden"></div>
   </section>
 
@@ -116,6 +121,14 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 <div id="scanReview" class="reviewOverlay hidden" aria-hidden="true">
   <div class="scannerTop"><strong>Review Scan</strong><span id="reviewQuality" class="small" style="color:#c8f7ef">Perspective corrected</span></div>
   <div class="reviewBody"><img id="reviewImage" alt="Scanned document preview"></div>
+  <div class="reviewOptions">
+    <label>Save scan as</label>
+    <div class="formatChoice" role="group" aria-label="Scan output format">
+      <button type="button" id="formatPdf" class="active">📄 PDF — Document</button>
+      <button type="button" id="formatJpeg">🖼️ JPEG — Image</button>
+    </div>
+    <div id="formatHelp" class="small" style="color:#a9d8d1;margin-top:7px">PDF is recommended for records and official documents.</div>
+  </div>
   <div class="reviewActions">
     <button id="retakeScan" class="closeBtn">↶ Retake</button>
     <button id="useScan" class="cameraBtn">✓ Use Scan</button>
@@ -210,6 +223,9 @@ let frameProcessing=false;
 let captureProcessing=false;
 let pendingScanBlob=null;
 let pendingScanURL=null;
+let pendingScanWidth=0;
+let pendingScanHeight=0;
+let scanOutputFormat='pdf';
 function sanitize(v){return String(v||"").trim().replace(/[\\/:*?"<>|#%{}~&]/g," ").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
 function values(){const out={Year:new Date().getFullYear()}; document.querySelectorAll('[data-field]').forEach(el=>out[el.dataset.field]=el.value); return out}
 function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
@@ -226,7 +242,7 @@ function remember(){if(!$('rememberRule').checked)return;const r=getRules();r[$(
 function renderRules(){const r=getRules(),keys=Object.keys(r);$('rulesList').innerHTML=keys.length?'':'<div class="small">No saved rules yet.</div>';keys.forEach(k=>{let d=document.createElement('div');d.className='rule';d.innerHTML=`<strong>${k}</strong><span class="small">${r[k].folder}<br>${r[k].pattern}</span>`;$('rulesList').appendChild(d)})}
 function show(msg,ok=false){$('saveStatus').textContent=msg;$('saveStatus').classList.remove('hidden');$('saveStatus').classList.toggle('success',ok)}
 function renamedFile(){if(!selectedFile)return null;const filename=$('filenameEdit').value||generated.name;return new File([selectedFile],filename,{type:selectedFile.type||'application/octet-stream',lastModified:Date.now()})}
-async function sharePrepared(destination){if(!selectedFile){show('Scan or choose a document first.');return}remember();const f=renamedFile();const shareData={files:[f],title:'FileNest document',text:`Suggested folder: ${$('folderEdit').value}`};if(navigator.canShare?.(shareData)){try{await navigator.share(shareData);show(`Share Sheet opened. Choose ${destination}, then file it in ${$('folderEdit').value}.`,true)}catch(e){if(e.name!=='AbortError')show('Sharing was not available. Use Save to Files instead.')}}else{downloadFile();show(`Your browser cannot share files directly. The renamed copy was downloaded. Open it and share it to ${destination}.`)}}
+async function sharePrepared(destination){if(!selectedFile){show('Scan or choose a document first.');return}remember();const f=renamedFile();const shareData={files:[f],title:'FileNest document'};if(navigator.canShare?.(shareData)){try{await navigator.share(shareData);show(`Share Sheet opened. Choose ${destination}, then file it in ${$('folderEdit').value}.`,true)}catch(e){if(e.name!=='AbortError')show('Sharing was not available. Use Save to Files instead.')}}else{downloadFile();show(`Your browser cannot share files directly. The renamed copy was downloaded. Open it and share it to ${destination}.`)}}
 function downloadFile(){if(!selectedFile){show('Scan or choose a document first.');return}remember();const a=document.createElement('a');a.href=URL.createObjectURL(selectedFile);a.download=$('filenameEdit').value||generated.name;document.body.appendChild(a);a.click();a.remove()}
 $('protonBtn').onclick=()=>sharePrepared('Proton Drive');$('googleBtn').onclick=()=>sharePrepared('Google Drive');$('shareBtn').onclick=()=>sharePrepared('the app you want');$('saveBtn').onclick=()=>{downloadFile();if(selectedFile)show(`Renamed copy saved. Suggested folder: ${$('folderEdit').value}`,true)};
 $('manifestBtn').onclick=()=>{remember();const record={created:new Date().toISOString(),category:$('category').value,folder:$('folderEdit').value,filename:$('filenameEdit').value,answers:values(),notes:$('notes').value,original:selectedFile?.name||null};const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=($('filenameEdit').value||'filing-record').replace(/\.[^.]+$/,'')+'_record.json';a.click();show('Downloaded the filing record.',true)};
@@ -242,16 +258,39 @@ $('autoToggle').onclick=()=>{
   autoCapture=!autoCapture;
   $('autoToggle').textContent=`Auto: ${autoCapture?'ON':'OFF'}`;
 };
+$('formatPdf').onclick=()=>setScanFormat('pdf');
+$('formatJpeg').onclick=()=>setScanFormat('jpeg');
 $('retakeScan').onclick=()=>{
   hideReview();
   startScanner();
 };
-$('useScan').onclick=()=>{
+$('useScan').onclick=async()=>{
   if(!pendingScanBlob)return;
-  const file=new File([pendingScanBlob],`Scan_${today}.jpg`,{type:'image/jpeg',lastModified:Date.now()});
-  selectFile(file,'Scanned document');
-  hideReview();
+  try{
+    let file;
+    if(scanOutputFormat==='pdf'){
+      const pdfBlob=await jpegBlobToPdfBlob(pendingScanBlob,pendingScanWidth,pendingScanHeight);
+      file=new File([pdfBlob],`Scan_${today}.pdf`,{type:'application/pdf',lastModified:Date.now()});
+      selectFile(file,'Scanned document • PDF');
+    }else{
+      file=new File([pendingScanBlob],`Scan_${today}.jpg`,{type:'image/jpeg',lastModified:Date.now()});
+      selectFile(file,'Scanned document • JPEG');
+    }
+    hideReview();
+  }catch(e){
+    console.error('Could not prepare scan output',e);
+    $('reviewQuality').textContent='Could not create selected format — try JPEG';
+  }
 };
+
+function setScanFormat(format){
+  scanOutputFormat=format;
+  $('formatPdf').classList.toggle('active',format==='pdf');
+  $('formatJpeg').classList.toggle('active',format==='jpeg');
+  $('formatHelp').textContent=format==='pdf'
+    ? 'PDF is recommended for records and official documents.'
+    : 'JPEG is useful for websites that require a photo/image upload.';
+}
 
 function updateMetrics(corners,stable){
   if($('metricEngine')) $('metricEngine').textContent='Native';
@@ -568,7 +607,10 @@ async function captureScan(quad,analysisW,analysisH){
       output=warpPerspectiveNative(full,fullQ);
     }
 
-    pendingScanBlob=await new Promise(res=>output.toBlob(res,'image/jpeg',.93));
+    pendingScanBlob=await new Promise(res=>output.toBlob(res,'image/jpeg',.94));
+    pendingScanWidth=output.width;
+    pendingScanHeight=output.height;
+    setScanFormat('pdf');
     if(pendingScanURL)URL.revokeObjectURL(pendingScanURL);
     pendingScanURL=URL.createObjectURL(pendingScanBlob);
     $('reviewImage').src=pendingScanURL;
@@ -583,6 +625,76 @@ async function captureScan(quad,analysisW,analysisH){
     captureProcessing=false;
   }
 }
+
+async function jpegBlobToPdfBlob(jpegBlob,imgW,imgH){
+  if(!imgW||!imgH)throw new Error('Missing scan dimensions');
+  const jpeg=new Uint8Array(await jpegBlob.arrayBuffer());
+  const enc=new TextEncoder();
+  const parts=[];
+  const offsets=[0];
+  let length=0;
+
+  const addBytes=(bytes)=>{
+    parts.push(bytes);
+    length+=bytes.length;
+  };
+  const addText=(text)=>addBytes(enc.encode(text));
+  const startObj=(n)=>{
+    offsets[n]=length;
+    addText(`${n} 0 obj\n`);
+  };
+  const endObj=()=>addText(`\nendobj\n`);
+
+  // US Letter page, portrait or landscape, with a small white margin.
+  const portrait=imgH>=imgW;
+  const pageW=portrait?612:792;
+  const pageH=portrait?792:612;
+  const margin=18;
+  const scale=Math.min((pageW-margin*2)/imgW,(pageH-margin*2)/imgH);
+  const drawW=imgW*scale;
+  const drawH=imgH*scale;
+  const x=(pageW-drawW)/2;
+  const y=(pageH-drawH)/2;
+
+  addText('%PDF-1.4\n%FileNest\n');
+
+  startObj(1);
+  addText('<< /Type /Catalog /Pages 2 0 R >>');
+  endObj();
+
+  startObj(2);
+  addText('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+  endObj();
+
+  startObj(3);
+  addText(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`);
+  endObj();
+
+  startObj(4);
+  addText(`<< /Type /XObject /Subtype /Image /Width ${imgW} /Height ${imgH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`);
+  addBytes(jpeg);
+  addText('\nendstream');
+  endObj();
+
+  const content=`q\n${drawW.toFixed(3)} 0 0 ${drawH.toFixed(3)} ${x.toFixed(3)} ${y.toFixed(3)} cm\n/Im0 Do\nQ\n`;
+  const contentBytes=enc.encode(content);
+  startObj(5);
+  addText(`<< /Length ${contentBytes.length} >>\nstream\n`);
+  addBytes(contentBytes);
+  addText('endstream');
+  endObj();
+
+  const xrefOffset=length;
+  addText('xref\n0 6\n');
+  addText('0000000000 65535 f \n');
+  for(let i=1;i<=5;i++){
+    addText(String(offsets[i]).padStart(10,'0')+' 00000 n \n');
+  }
+  addText(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);
+
+  return new Blob(parts,{type:'application/pdf'});
+}
+
 function hideReview(){
   $('scanReview').classList.add('hidden');
   $('scanReview').setAttribute('aria-hidden','true');

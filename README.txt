@@ -1,32 +1,36 @@
-FileNest — Native Scanner build
-================================
+FileNest — PDF/JPEG Scan Output Update
+=========================================
 
-THIS BUILD DOES NOT USE OPENCV OR ANY COMPUTER-VISION CDN.
+This build preserves the working native scanner and does NOT change the
+document-corner detection algorithm.
 
-The document scanner is implemented inside index.html using browser JavaScript:
-- live rear-camera preview
-- grayscale + Sobel edge detection
-- adaptive edge threshold
-- edge dilation to join broken page borders
-- connected-component page-outline search
-- four-corner estimation
-- green quadrilateral + corner markers
-- 6-frame stability lock
-- automatic capture
-- native perspective correction
-- Review Scan screen with Retake / Use Scan
-- manual Capture fallback
+NEW SCAN OUTPUT FLOW
+1. Scan / auto-capture the document.
+2. Review the perspective-corrected scan.
+3. Choose:
+   - PDF — Document (default)
+   - JPEG — Image
+4. Tap Use Scan.
+5. FileNest continues to classification, naming, and filing.
 
-TESTING
-1. Upload ALL files from this ZIP to the GitHub repository root.
-2. Wait for GitHub Pages to redeploy.
-3. First test the GitHub Pages URL directly in Safari, not the old Home Screen shortcut.
-4. Tap Scan document.
-5. Rear camera should open immediately.
-6. Put a white/bright sheet on a contrasting darker background.
-7. Green corners and border should appear when the page is found.
-8. Hold still until Stable reaches 6/6.
-9. FileNest should auto-snap and show Review Scan.
-10. Tap Use Scan or Retake.
+PDF
+- Default for scanned documents.
+- Creates a real single-page PDF containing the corrected scan.
+- Recommended for records, receipts, official documents, and archives.
 
-There is no "Engine Loading" stage in this version because the detector is built into the page.
+JPEG
+- Creates a .jpg image.
+- Useful when a website does not accept PDF and requires a picture.
+
+NO EXTRA TEXT FILE
+- The iOS Share Sheet payload now shares ONLY the document file.
+- The previous "Suggested folder" text was removed from the share payload
+  because iOS/receiving apps can treat shared text as an additional text item.
+- Scanning itself does not create any .txt file.
+- "Export filing record (JSON)" remains an optional manual button. It only
+  creates a JSON record when you deliberately tap it.
+
+IMPORTANT
+- Upload all files in this ZIP to the GitHub repository root.
+- Replace the current index.html.
+- The scanner detector itself is unchanged from the working Native Scanner build.
