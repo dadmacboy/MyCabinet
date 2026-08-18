@@ -109,7 +109,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div class="scanGuide" id="scanGuide"></div><div id="batchBadge" class="batchBadge hidden">Batch • 0 pages</div>
     <div class="scannerHint"><span id="scanDot" class="scanDot"></span><span id="scanHint">Point camera at the document</span></div>
   </div>
-  <div id="scannerState" style="padding:8px 14px;background:#0b211f;color:#b9fff1;font-size:13px;text-align:center">Place the document roughly inside the guide. FileNest will auto-capture when the corners are steady.</div>
+  <div id="scannerState" style="padding:8px 14px;background:#0b211f;color:#b9fff1;font-size:13px;text-align:center">Place the document roughly inside the guide. FileNest confirms the corners for about one second before auto-capture.</div>
   <div class="scanMetrics">
     <div class="scanMetric">Detector<b id="metricEngine">Native</b></div>
     <div class="scanMetric">Corners<b id="metricEdges">0</b></div>
@@ -240,6 +240,10 @@ let activeReviewIndex=0;
 let enhancementMode='document';
 let watermarkEnabled=false;
 let batchPreparedFiles=null;
+let lockStartedAt=0;
+let lockConfidence=0;
+let lastGoodDetectionAt=0;
+const AUTO_LOCK_MS=900;
 function sanitize(v){return String(v||"").trim().replace(/[\\/:*?"<>|#%{}~&]/g," ").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
 function values(){const out={Year:new Date().getFullYear()}; document.querySelectorAll('[data-field]').forEach(el=>out[el.dataset.field]=el.value); return out}
 function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
@@ -453,12 +457,64 @@ async function processFrame(){
     work.width=W;work.height=H;const ctx=work.getContext('2d',{willReadFrequently:true});ctx.drawImage(video,0,0,W,H);
     const result=detectDocument(ctx.getImageData(0,0,W,H),W,H);
     if(result?.quad){
-      const smoothed=smoothQuad(lastQuad,result.quad,.62);const movement=quadMovement(lastQuad,smoothed);lastQuad=smoothed;drawQuad(smoothed,W,H);updateGuide('detected');
-      if(result.score>.50&&movement<18){
-        stableFrames=Math.min(4,stableFrames+1);updateMetrics(4,stableFrames);setHint(stableFrames>=4?'Locked — capturing…':`Document found — hold still ${stableFrames}/4`,'ready');
-        if(stableFrames>=4&&autoCapture){updateGuide('locked');const captureQ=smoothed.map(p=>({...p}));stableFrames=0;updateMetrics(4,0);setTimeout(()=>captureScan(captureQ,W,H),30)}
-      }else{stableFrames=Math.max(0,stableFrames-1);updateMetrics(4,stableFrames);setHint(result.score>.42?'Document found — steady the phone':'Move page closer to guide','ready')}
-    }else{lastQuad=null;stableFrames=0;updateMetrics(0,0);updateGuide('');setHint('Place the document roughly inside the guide','');drawGuideOnly()}
+      const smoothed=smoothQuad(lastQuad,result.quad,.48);
+      const movement=quadMovement(lastQuad,smoothed);
+      lastQuad=smoothed;
+      drawQuad(smoothed,W,H);
+      updateGuide('detected');
+
+      const now=performance.now();
+      const goodGeometry=result.score>.50;
+      const steadyEnough=movement<20;
+
+      if(goodGeometry&&steadyEnough){
+        lastGoodDetectionAt=now;
+        if(!lockStartedAt)lockStartedAt=now;
+
+        lockConfidence=Math.min(1,lockConfidence+.18);
+        const elapsed=now-lockStartedAt;
+        stableFrames=Math.max(1,Math.min(4,Math.floor(lockConfidence*4+.25)));
+        updateMetrics(4,stableFrames);
+
+        if(elapsed<AUTO_LOCK_MS||lockConfidence<.72){
+          const remaining=Math.max(0,AUTO_LOCK_MS-elapsed);
+          const tenths=Math.max(.1,Math.ceil(remaining/100)/10);
+          setHint(`Document found — steady ${tenths.toFixed(1)}s`,'ready');
+        }else{
+          setHint('Locked — capturing…','captured');
+          updateGuide('locked');
+          if(autoCapture){
+            const captureQ=smoothed.map(p=>({...p}));
+            stableFrames=0;
+            lockConfidence=0;
+            lockStartedAt=0;
+            updateMetrics(4,0);
+            setTimeout(()=>captureScan(captureQ,W,H),90);
+          }
+        }
+      }else{
+        lockConfidence=Math.max(0,lockConfidence-.12);
+        if(now-lastGoodDetectionAt>420){
+          lockStartedAt=0;
+          lockConfidence=0;
+          stableFrames=0;
+        }else{
+          stableFrames=Math.max(0,Math.min(4,Math.floor(lockConfidence*4+.25)));
+        }
+        updateMetrics(4,stableFrames);
+        setHint(result.score>.42?'Document found — steady the phone':'Adjust page until all four corners are clear','ready');
+      }
+    }else{
+      lastQuad=null;
+      stableFrames=0;
+      lockStartedAt=0;
+      lockConfidence=0;
+      lastGoodDetectionAt=0;
+      updateMetrics(0,0);
+      updateGuide('');
+      setHint('Place the document roughly inside the guide','');
+      drawGuideOnly()
+    }
   }catch(e){console.error('Native detector error',e);updateMetrics(0,0);setHint('Detector error — tap Capture for manual scan','')}
   finally{frameProcessing=false}
 }
