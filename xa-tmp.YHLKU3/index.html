@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0f766e" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="FileNest" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<title>FileNest Scanner Upgrade</title>
+<style>
+:root{--bg:#f4f7f7;--card:#fff;--ink:#173131;--muted:#617676;--brand:#0f766e;--brand2:#14b8a6;--line:#d8e3e2;--warn:#9a6700;--danger:#b42318;--blue:#2563eb;--purple:#6d28d9;--shadow:0 12px 28px rgba(15,118,110,.10)}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#e9f7f5 0,#f7f9f9 220px);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+.app{max-width:760px;margin:auto;padding:18px 16px 44px}.hero{padding:18px 4px 14px}.hero h1{margin:0;font-size:clamp(28px,8vw,44px);letter-spacing:-.04em}.hero p{margin:.35rem 0 0;color:var(--muted)}
+.card{background:var(--card);border:1px solid rgba(15,118,110,.12);border-radius:22px;padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+.step{display:flex;gap:12px;align-items:flex-start}.num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#d9f3ef;color:var(--brand);font-weight:800;flex:0 0 auto}.step h2{margin:2px 0 4px;font-size:20px}.step p{margin:0;color:var(--muted)}
+label{display:block;font-weight:700;margin:14px 0 6px} input,select,textarea,button{font:inherit} input[type=text],input[type=date],input[type=number],select,textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:white;color:var(--ink)} textarea{min-height:90px;resize:vertical}.grid{display:grid;grid-template-columns:1fr;gap:12px}@media(min-width:600px){.grid.two{grid-template-columns:1fr 1fr}.grid.three{grid-template-columns:repeat(3,1fr)}}
+.filebox{border:2px dashed #9bcac4;border-radius:18px;padding:18px;text-align:center;background:#f7fffd}.thumb{margin-top:12px;max-width:100%;max-height:330px;border-radius:14px;display:none}.small{font-size:13px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.chip{border:1px solid #b7d8d3;background:#f4fffd;color:#155e57;padding:8px 11px;border-radius:999px;cursor:pointer}.chip.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px}.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}.secondary{background:#e9f2f1;color:#174d49}.danger{background:#feeceb;color:var(--danger)}.blue{background:var(--blue);color:#fff}.purple{background:var(--purple);color:#fff}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.actions>*{flex:1 1 180px}
+.preview{background:#102f2d;color:#eafffb;border-radius:16px;padding:16px;overflow-wrap:anywhere}.preview .folder{color:#9be6db}.preview .name{font-weight:800;font-size:18px;margin-top:8px}.status{padding:10px 12px;border-radius:12px;background:#fff6d8;color:var(--warn);margin-top:12px}.success{background:#e8faf4;color:#176b52}.hidden{display:none!important}.rule{border-top:1px solid var(--line);padding:12px 0}.rule:first-child{border-top:0}.rule strong{display:block}.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}.toggle{display:flex;gap:8px;align-items:center;margin-top:10px}.toggle input{width:20px;height:20px}.destination{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fafdfd}.destination h3{margin:0 0 5px;font-size:16px}.destination p{margin:0;color:var(--muted);font-size:13px}
+/* scanner */
+.scanner{position:fixed;inset:0;background:#071413;z-index:99;color:white;display:flex;flex-direction:column}.scannerTop{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}.scannerTop strong{font-size:17px}.scannerStage{position:relative;flex:1;min-height:0;overflow:hidden;background:#000}.scanner video,.scanner canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scanner canvas{pointer-events:none}.scanGuide{position:absolute;left:8%;right:8%;top:15%;bottom:15%;border:2px dashed rgba(255,255,255,.55);border-radius:10px;pointer-events:none;transition:.18s ease}.scanGuide.detected{opacity:.16;transform:scale(.985)}.scanGuide.locked{opacity:0}.scannerHint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.65);padding:8px 12px;border-radius:999px;font-size:13px;white-space:nowrap}.scannerControls{padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;background:#071413}.scannerControls button{flex:1}.scanDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:7px}.scanDot.ready{background:#22c55e}.scanDot.captured{background:#60a5fa}.cameraBtn{background:white;color:#123}.closeBtn{background:#223c39;color:#fff}.autoBtn{background:#0f766e;color:#fff}.batchBtn{background:#374151;color:#fff}.batchBtn.active{background:#7c3aed}.finishBatchBtn{background:#f59e0b;color:#1f2937}.batchBadge{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.68);color:#fff;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800}.batchStrip{display:flex;gap:8px;overflow-x:auto;padding:8px 14px;background:#081817}.batchThumb{position:relative;flex:0 0 74px;height:96px;border:2px solid transparent;border-radius:8px;overflow:hidden;background:#fff;padding:0}.batchThumb img{width:100%;height:100%;object-fit:cover}.batchThumb span{position:absolute;right:3px;bottom:3px;background:rgba(0,0,0,.68);color:#fff;border-radius:999px;padding:2px 5px;font-size:10px}.reviewTools{padding:10px 14px;background:#0b211f;border-top:1px solid rgba(255,255,255,.08)}.reviewTools label{color:#d9fffa;margin:0 0 6px}.modeChoice{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}.modeChoice button{border:1px solid #456a65;background:#163a36;color:#d9fffa;padding:9px 6px;border-radius:11px;font-size:13px}.modeChoice button.active{background:#0f766e;color:#fff;border-color:#2dd4bf}.watermarkRow{display:flex;align-items:center;gap:8px;color:#d9fffa;font-size:13px}.watermarkRow input{width:20px;height:20px}
+.scanMetrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px 12px;background:#0a1a19;color:#d9fffa;font-size:11px;text-align:center}
+.scanMetric{background:#112a27;border-radius:8px;padding:6px}
+.scanMetric b{display:block;font-size:13px;color:#7fffdc}
+.reviewOverlay{position:fixed;inset:0;background:#071413;z-index:120;color:#fff;display:flex;flex-direction:column}
+.reviewBody{flex:1;min-height:0;display:grid;place-items:center;padding:14px}
+.reviewBody img{max-width:100%;max-height:100%;object-fit:contain;border-radius:10px;background:#fff}
+.reviewOptions{padding:10px 14px;background:#0b211f;border-top:1px solid rgba(255,255,255,.08)}
+.reviewOptions label{color:#d9fffa;margin:0 0 6px}
+.formatChoice{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.formatChoice button{border:1px solid #456a65;background:#163a36;color:#d9fffa;padding:10px;border-radius:12px}
+.formatChoice button.active{background:#0f766e;color:#fff;border-color:#2dd4bf}
+.reviewActions{display:flex;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}
+.reviewActions button{flex:1}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="hero">
+    <h1>FileNest</h1>
+    <p>Scan it. Identify it. File it into your real Proton Drive structure.</p>
+  </header>
+
+  <section class="card">
+    <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>Use the document scanner for edge detection and auto-capture, or choose an existing file. After scanning, FileNest keeps the prepared PDF/JPEG here until you choose where to save it.</p></div></div>
+    <div class="actions">
+      <button class="primary" id="openScannerBtn">▣ Scan document</button>
+      <label class="buttonLabel secondary" for="fileInput">＋ Choose existing file</label>
+      <input id="fileInput" class="hidden" type="file" accept="image/*,.pdf" />
+    </div>
+    <div class="filebox" style="margin-top:14px">
+      <img id="thumb" class="thumb" alt="Document preview" />
+      <div id="fileInfo" class="small" style="margin-top:10px">No document selected.</div>
+    </div>
+    <div id="scannerAvailability" class="status hidden"></div>
+    <div id="cameraRecovery" class="actions hidden">
+      <button id="enableCameraBtn" class="primary">Enable Camera</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="step"><div class="num">2</div><div><h2>What kind of document is it?</h2><p>Choose the closest match. FileNest maps it to your actual numbered filing system.</p></div></div>
+    <div id="categoryChips" class="chips"></div>
+    <label for="category">Category</label><select id="category"></select>
+    <div id="dynamicFields" class="grid two"></div>
+    <label for="notes">Optional notes</label><textarea id="notes" placeholder="Anything useful for finding this later"></textarea>
+  </section>
+
+  <section class="card">
+    <div class="step"><div class="num">3</div><div><h2>Review the suggested filing</h2><p>The path below matches your Proton Drive structure. Edit it only when needed.</p></div></div>
+    <div class="preview" style="margin-top:14px">
+      <div class="folder" id="folderPreview">/Unsorted/</div><div class="name" id="filenamePreview">Document.pdf</div>
+    </div>
+    <div class="grid two">
+      <div><label for="folderEdit">Suggested folder</label><input id="folderEdit" type="text"></div>
+      <div><label for="filenameEdit">Filename</label><input id="filenameEdit" type="text"></div>
+    </div>
+    <div class="toggle"><input id="rememberRule" type="checkbox"><label for="rememberRule" style="margin:0">Remember this as my preferred pattern</label></div>
+  </section>
+
+  <section class="card">
+    <div class="step"><div class="num">4</div><div><h2>Choose where to file it</h2><p>On iPhone, Proton Drive and Google Drive are reached through the Share Sheet. FileNest prepares the renamed document first.</p></div></div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="destination"><h3>🟣 Proton Drive</h3><p>Opens iPhone sharing. Choose Proton Drive, then the suggested folder.</p><button class="purple" id="protonBtn" style="width:100%;margin-top:10px">Save to Proton Drive</button></div>
+      <div class="destination"><h3>🔵 Google Drive</h3><p>Opens iPhone sharing. Choose Drive, then the suggested folder.</p><button class="blue" id="googleBtn" style="width:100%;margin-top:10px">Save to Google Drive</button></div>
+      <div class="destination"><h3>📱 Files / Device</h3><p>Downloads a renamed copy to your phone or computer.</p><button class="secondary" id="saveBtn" style="width:100%;margin-top:10px">Save to Files</button></div>
+      <div class="destination"><h3>↗️ Other app</h3><p>Share the renamed document using any compatible app.</p><button class="secondary" id="shareBtn" style="width:100%;margin-top:10px">Share elsewhere</button></div>
+    </div>
+    <div class="actions"><button class="danger" id="resetBtn">Start over</button></div>
+    <div id="saveStatus" class="status hidden"></div>
+  </section>
+
+  <section class="card">
+    <div class="step"><div class="num">5</div><div><h2>Saved rules on this phone</h2><p>These stay only in your browser.</p></div></div>
+    <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
+  </section>
+
+  <div class="footer">FileNest v3 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
+</div>
+
+<div id="scanner" class="scanner hidden" aria-hidden="true">
+  <div class="scannerTop"><strong>Document Scanner</strong><button id="closeScanner" class="closeBtn">Close</button></div>
+  <div class="scannerStage">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <div class="scanGuide" id="scanGuide"></div><div id="batchBadge" class="batchBadge hidden">Batch • 0 pages</div>
+    <div class="scannerHint"><span id="scanDot" class="scanDot"></span><span id="scanHint">Point camera at the document</span></div>
+  </div>
+  <div id="scannerState" style="padding:8px 14px;background:#0b211f;color:#b9fff1;font-size:13px;text-align:center">Place the document roughly inside the guide. FileNest must visibly find all four page corners, confirm them across several frames, and hold the lock before auto-capture.</div>
+  <div class="scanMetrics">
+    <div class="scanMetric">Detector<b id="metricEngine">Native</b></div>
+    <div class="scanMetric">Corners<b id="metricEdges">0</b></div>
+    <div class="scanMetric">Stable<b id="metricStable">0/4</b></div>
+  </div>
+  <div class="scannerControls"><button id="autoToggle" class="autoBtn">Auto: ON</button><button id="batchToggle" class="batchBtn">Batch: OFF</button><button id="captureBtn" class="cameraBtn">● Capture</button><button id="finishBatch" class="finishBatchBtn hidden">Finish Batch</button></div>
+</div>
+
+<div id="scanReview" class="reviewOverlay hidden" aria-hidden="true">
+  <div class="scannerTop"><strong>Review Scan</strong><span id="reviewQuality" class="small" style="color:#c8f7ef">Perspective corrected</span></div>
+  <div class="reviewBody"><img id="reviewImage" alt="Scanned document preview"></div>
+  <div id="batchStrip" class="batchStrip hidden"></div>
+  <div class="reviewTools">
+    <label>Scan appearance</label>
+    <div class="modeChoice"><button type="button" id="modeOriginal">Original</button><button type="button" id="modeDocument" class="active">Document</button><button type="button" id="modeBW">B&amp;W</button></div>
+    <label class="watermarkRow"><input id="watermarkToggle" type="checkbox"> Add small FileNest logo watermark</label>
+  </div>
+  <div class="reviewOptions">
+    <label>Save scan as</label>
+    <div class="formatChoice" role="group" aria-label="Scan output format">
+      <button type="button" id="formatPdf" class="active">📄 PDF — Document</button>
+      <button type="button" id="formatJpeg">🖼️ JPEG — Image</button>
+    </div>
+    <div id="formatHelp" class="small" style="color:#a9d8d1;margin-top:7px">PDF is recommended for records and official documents. “Use Scan & Continue” prepares the file; you choose its final save destination afterward.</div>
+  </div>
+  <div class="reviewActions">
+    <button id="retakeScan" class="closeBtn">↶ Retake</button>
+    <button id="useScan" class="cameraBtn">✓ Use Scan & Continue</button>
+  </div>
+</div>
+
+<canvas id="workCanvas" class="hidden"></canvas>
+<canvas id="resultCanvas" class="hidden"></canvas>
+<script>
+// Scans produce one document only: PDF or JPEG. No TXT/JSON sidecar is created automatically.
+
+const today = new Date().toISOString().slice(0,10);
+const definitions = {
+  "Personal & Family": {
+    pattern:"{Person}_{Document Type}_{Date}",
+    fields:[["Person","select",["David","Ursula","Romulo","Marcos","Family"]],["Document Type","select",["Identification / ID","Birth Certificate","Marriage Certificate","Civic / Voting","Personal Record","Family Photo","Family Benefits Hub","Other"]],["Date","date",today],["Detail","text","Optional detail"]],
+    resolveFolder(v){const t=v["Document Type"],p=v.Person||"David";if(t==="Identification / ID")return p==="David"?"01 Personal & Family/David/Identification":`01 Personal & Family/${p}/Personal Records`;if(t==="Birth Certificate"||t==="Marriage Certificate")return "01 Personal & Family/Vital Records";if(t==="Civic / Voting")return "01 Personal & Family/Civic & Voting";if(t==="Family Photo")return "01 Personal & Family/Family Photos";if(t==="Family Benefits Hub")return "01 Personal & Family/Family Benefits Hub";if(t==="Personal Record")return p==="David"?"01 Personal & Family/David/Personal Records":`01 Personal & Family/${p}/Personal Records`;return "99 Inbox"}
+  },
+  "Military & Veteran": {
+    pattern:"{Document Type}_{Person}_{Date}",
+    fields:[["Document Type","select",["DD214 / Discharge","Orders","Award","OMPF","Retirement","Separation","Security Clearance","Career Archive","SBP","TSP","Other"]],["Person","text","e.g., David"],["Date","date",today],["Detail","text","Optional detail"]],
+    resolveFolder(v){return ({"DD214 / Discharge":"02 Military & Veteran/Military Records/Separation","Orders":"02 Military & Veteran/Military Records/Orders","Award":"02 Military & Veteran/Military Records/Awards","OMPF":"02 Military & Veteran/Military Records/OMPF","Retirement":"02 Military & Veteran/Military Records/Retirement","Separation":"02 Military & Veteran/Military Records/Separation","Security Clearance":"02 Military & Veteran/Military Records/Security Clearance","Career Archive":"02 Military & Veteran/Military Records/Career Archive","SBP":"02 Military & Veteran/SBP","TSP":"02 Military & Veteran/TSP"})[v["Document Type"]]||"99 Inbox"}
+  },
+  "VA": {
+    pattern:"VA_{Document Type}_{Person}_{Date}",
+    fields:[["Document Type","select",["Claim","Decision","DBQ","Medical Evidence","Education Benefit","Benefits Letter","BDD","Supplemental Education Claim","Other"]],["Person","text","e.g., David"],["Date","date",today],["Claim or Reference","text","Optional claim/reference"]],
+    resolveFolder(v){return ({"Claim":"02 Military & Veteran/VA/Disability/Claims","Decision":"02 Military & Veteran/VA/Disability/Decisions","DBQ":"02 Military & Veteran/VA/Disability/DBQs","Medical Evidence":"02 Military & Veteran/VA/Disability/Medical Evidence","Education Benefit":"02 Military & Veteran/VA/Education","Benefits Letter":"02 Military & Veteran/VA/Benefits","BDD":"02 Military & Veteran/VA/BDD","Supplemental Education Claim":"02 Military & Veteran/VA/Suplemental VA Claim Education"})[v["Document Type"]]||"99 Inbox"}
+  },
+  "Medical": {
+    pattern:"{Person}_{Provider}_{Document Type}_{Date}",
+    fields:[["Person","select",["David","Ursula","Romulo","Marcos"]],["Provider","text","Hospital, clinic, or provider"],["Document Type","select",["Visit Summary","Lab Result","Imaging","Prescription","Referral","Dental","Vision","Medical Record","Other"]],["Date","date",today]],
+    resolveFolder(v){return `03 Medical/${v.Person||"David"}`}
+  },
+  "Financial / Tax": {
+    pattern:"{Institution}_{Document Type}_{Tax Year}_{Date}",
+    fields:[["Document Type","select",["Tax Return","W-2","1099","1095-C","Tax Payment","Banking","Budget","Retirement","Other"]],["Institution","text","Bank, employer, agency"],["Tax Year","text",String(new Date().getFullYear())],["Date","date",today]],
+    resolveFolder(v){const t=v["Document Type"],y=sanitize(v["Tax Year"]||new Date().getFullYear());if(["Tax Return","W-2","1099","1095-C","Tax Payment"].includes(t))return `04 Financial/Taxes/${y}`;if(t==="Banking")return "04 Financial/Banking";if(t==="Budget")return "04 Financial/Budget";if(t==="Retirement")return "04 Financial/Retirement";return "99 Inbox"}
+  },
+  "Employment & Career": {
+    pattern:"{Employer}_{Document Type}_{Position}_{Date}",
+    fields:[["Document Type","select",["Resume","Cover Letter","Application","Offer Letter","Certification","SkillBridge","Previous Work","Other"]],["Employer","text","Employer or organization"],["Position","text","Job title or subject"],["Date","date",today]],
+    resolveFolder(v){return ({"Resume":"05 Employment & Career/Resumes","Cover Letter":"05 Employment & Career/Applications","Application":"05 Employment & Career/Applications","Offer Letter":"05 Employment & Career/Applications","Certification":"05 Employment & Career/Certifications","SkillBridge":"05 Employment & Career/DoWEA Skillbridge","Previous Work":"05 Employment & Career/Previous Work"})[v["Document Type"]]||"99 Inbox"}
+  },
+  "Education": {
+    pattern:"{Person}_{School}_{Document Type}_{Term}",
+    fields:[["Person","select",["David","Ursula","Romulo","Marcos"]],["School","text","School name"],["Document Type","select",["Transcript","Enrollment","Tuition","Acceptance","Certificate","Diploma","Theology Study","Other"]],["Term","text","e.g., Fall 2026"]],
+    resolveFolder(v){const p=v.Person||"David";if(v["Document Type"]==="Theology Study")return "06 Education/Theology";if(p==="Romulo")return "01 Personal & Family/Romulo/Education";if(p==="Marcos")return "01 Personal & Family/Marcos/Education";return "06 Education/David"}
+  },
+  "Home & Property": {
+    pattern:"{Document Type}_{Item}_{Date}",
+    fields:[["Document Type","select",["Housing","Utility","Warranty","Manual","Installation","Repair","Insurance","Property Record","Other"]],["Item","text","Home, appliance, utility, etc."],["Date","date",today],["Provider","text","Optional provider"]],
+    resolveFolder(v){if(v["Document Type"]==="Utility")return "07 Home & Property/Utilities";if(["Housing","Property Record","Insurance"].includes(v["Document Type"]))return "07 Home & Property/Housing";if(["Warranty","Manual","Installation","Repair"].includes(v["Document Type"]))return "07 Home & Property/Housing";return "99 Inbox"}
+  },
+  "Vehicles": {
+    pattern:"{Vehicle}_{Document Type}_{Odometer}mi_{Date}",
+    fields:[["Vehicle","text","e.g., Toyota Aqua"],["Document Type","select",["Maintenance","Registration","Insurance","Inspection","Purchase","Repair","Other"]],["Odometer","number","Optional"],["Date","date",today]],
+    resolveFolder(v){const vehicle=sanitize(v.Vehicle||"Vehicle");const t=sanitize(v["Document Type"]||"Records");return `08 Vehicles/${vehicle}/${t}`}
+  },
+  "Immigration & Travel": {
+    pattern:"{Document Type}_{Person}_{Trip}_{Date}",
+    fields:[["Document Type","select",["Papa Immigration","Passport / Citizenship","Trip","Travel Authorization","Visa / Immigration","Other"]],["Person","text","Person"],["Trip","text","e.g., Spain or Peru 2026"],["Date","date",today]],
+    resolveFolder(v){const t=v["Document Type"];if(t==="Papa Immigration"||t==="Visa / Immigration")return "09 Immigration & Travel/Papa Immigration/Visa Papa";if(t==="Passport / Citizenship")return "09 Immigration & Travel/Passports & Citizenship";if(t==="Travel Authorization")return "09 Immigration & Travel/Travel Authorizations";if(t==="Trip")return `09 Immigration & Travel/Trips/${sanitize(v.Trip||"Trip")}`;return "99 Inbox"}
+  },
+  "Receipts": {
+    pattern:"{Merchant}_{Receipt Type}_{Date}_{Amount}",
+    fields:[["Receipt Type","select",["Purchase","Service","Subscription","Other"]],["Merchant","text","Merchant or provider"],["Amount","text","Optional amount"],["Date","date",today]],
+    resolveFolder(v){return ({"Purchase":"10 Receipts/Purchases","Service":"10 Receipts/Services","Subscription":"10 Receipts/Subscriptions","Other":"10 Receipts/Other"})[v["Receipt Type"]]||"10 Receipts/Other"}
+  },
+  "Reference Library": {
+    pattern:"{Title}_{Date}",
+    fields:[["Document Type","select",["Theology","Mapas de la Palabra","Book","Catholic / Angelus","Other Reference"]],["Title","text","Title"],["Date","date",today]],
+    resolveFolder(v){return ({"Theology":"11 Reference Library/Theology","Mapas de la Palabra":"11 Reference Library/Mapas de la Palabra","Book":"11 Reference Library/Books","Catholic / Angelus":"11 Reference Library/Catholic/Angelus","Other Reference":"11 Reference Library"})[v["Document Type"]]||"11 Reference Library"}
+  },
+  "Technology & Apps": {
+    pattern:"{Document Type}_{Title}_{Date}",
+    fields:[["Document Type","select",["My App","Recovery / Security","Legacy Web File","Other"]],["Title","text","App, file, or project name"],["Date","date",today]],
+    resolveFolder(v){return ({"My App":"12 Technology & Apps/My Apps","Recovery / Security":"12 Technology & Apps/Recovery & Security","Legacy Web File":"12 Technology & Apps/Legacy Web Files"})[v["Document Type"]]||"99 Inbox"}
+  },
+  "Other / Unsure": {
+    pattern:"{Title}_{Date}",
+    fields:[["Title","text","What is this document?"],["Date","date",today]],
+    resolveFolder(){return "99 Inbox"}
+  }
+};
+const $=id=>document.getElementById(id);
+let selectedFile=null;
+let generated={folder:"",name:""};
+let stream=null;
+let autoCapture=true;
+let scanTimer=null;
+let stableFrames=0;
+let lastQuad=null;
+let frameProcessing=false;
+let captureProcessing=false;
+let pendingScanBlob=null;
+let pendingScanURL=null;
+let pendingScanWidth=0;
+let pendingScanHeight=0;
+let scanOutputFormat='pdf';
+let batchMode=false;
+let batchPages=[];
+let activeReviewIndex=0;
+let enhancementMode='document';
+let watermarkEnabled=false;
+let batchPreparedFiles=null;
+let lockStartedAt=0;
+let lockConfidence=0;
+let lastGoodDetectionAt=0;
+const AUTO_LOCK_MS=1400;
+let goodCornerFrames=0;
+const REQUIRED_GOOD_FRAMES=6;
+function sanitize(v){return String(v||"").trim().replace(/[\\/:*?"<>|#%{}~&]/g," ").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
+function values(){const out={Year:new Date().getFullYear()}; document.querySelectorAll('[data-field]').forEach(el=>out[el.dataset.field]=el.value); return out}
+function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
+function extension(){if(!selectedFile)return ".jpg"; const n=selectedFile.name||""; const m=n.match(/\.[^.]+$/); return m?m[0].toLowerCase():(selectedFile.type.includes("pdf")?".pdf":".jpg")}
+function updatePreview(){const d=definitions[$('category').value],v=values();v.Year=(v.Date||today).slice(0,4)||new Date().getFullYear();let saved=getRules()[$('category').value];let baseFolder=d.resolveFolder?d.resolveFolder(v):(d.folder||'99 Inbox');let folder=applyTemplate(saved?.folder||baseFolder,v);let name=applyTemplate(saved?.pattern||d.pattern,v);folder="/"+folder.replace(/^\/+|\/+$/g,"")+"/";name=(name||"Document_"+today)+extension();generated={folder,name};$('folderPreview').textContent=folder;$('filenamePreview').textContent=name;$('folderEdit').value=folder;$('filenameEdit').value=name}
+function renderFields(){const cat=$('category').value,d=definitions[cat];$('dynamicFields').innerHTML="";d.fields.forEach(([name,type,arg])=>{const wrap=document.createElement('div'),lab=document.createElement('label');lab.textContent=name;const el=document.createElement(type==='select'?'select':'input');el.dataset.field=name;if(type==='select'){arg.forEach(o=>{let op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op)})}else{el.type=type;if(type==='date')el.value=arg||today;else el.placeholder=arg||""}el.addEventListener('input',updatePreview);wrap.append(lab,el);$('dynamicFields').appendChild(wrap)});updatePreview();syncChips()}
+function syncChips(){document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.cat===$('category').value))}
+function initCategories(){Object.keys(definitions).forEach(cat=>{let op=document.createElement('option');op.value=cat;op.textContent=cat;$('category').appendChild(op);let b=document.createElement('button');b.type='button';b.className='chip';b.dataset.cat=cat;b.textContent=cat;b.onclick=()=>{$('category').value=cat;renderFields()};$('categoryChips').appendChild(b)});$('category').value='Financial / Tax';$('category').onchange=renderFields;renderFields()}
+function selectFile(file, label){selectedFile=file;if(!selectedFile){$('fileInfo').textContent='No document selected.';return}$('fileInfo').textContent=`${label||selectedFile.name} • ${(selectedFile.size/1024).toFixed(1)} KB`;if(selectedFile.type.startsWith('image/')){const u=URL.createObjectURL(selectedFile);$('thumb').src=u;$('thumb').style.display='inline-block'}else $('thumb').style.display='none';updatePreview()}
+$('fileInput').addEventListener('change',e=>selectFile(e.target.files[0]||null));
+function getRules(){try{return JSON.parse(localStorage.getItem('fileNestRulesV3')||'{}')}catch{return {}}}
+function setRules(r){localStorage.setItem('fileNestRulesV3',JSON.stringify(r));renderRules()}
+function remember(){if(!$('rememberRule').checked)return;const r=getRules();r[$('category').value]={folder:$('folderEdit').value.replace(/^\/+|\/+$/g,''),pattern:$('filenameEdit').value.replace(/\.[^.]+$/,'')};setRules(r)}
+function renderRules(){const r=getRules(),keys=Object.keys(r);$('rulesList').innerHTML=keys.length?'':'<div class="small">No saved rules yet.</div>';keys.forEach(k=>{let d=document.createElement('div');d.className='rule';d.innerHTML=`<strong>${k}</strong><span class="small">${r[k].folder}<br>${r[k].pattern}</span>`;$('rulesList').appendChild(d)})}
+function show(msg,ok=false){$('saveStatus').textContent=msg;$('saveStatus').classList.remove('hidden');$('saveStatus').classList.toggle('success',ok)}
+function renamedFiles(){
+  if(!selectedFile)return [];
+  const filename=$('filenameEdit').value||generated.name;
+  if(batchPreparedFiles&&batchPreparedFiles.length>1&&selectedFile.type==='image/jpeg'){
+    const base=filename.replace(/\.[^.]+$/,'');
+    return batchPreparedFiles.map((f,i)=>new File([f],`${base}_p${String(i+1).padStart(2,'0')}.jpg`,{type:'image/jpeg',lastModified:Date.now()}));
+  }
+  return [new File([selectedFile],filename,{type:selectedFile.type||'application/octet-stream',lastModified:Date.now()})];
+}
+async function sharePrepared(destination){
+  if(!selectedFile){show('Scan or choose a document first.');return}
+  remember();
+  const files=renamedFiles();
+  const shareData={files};
+  if(navigator.canShare?.(shareData)){
+    try{await navigator.share(shareData);show(`Share Sheet opened. Choose ${destination}, then file it in ${$('folderEdit').value}.`,true)}
+    catch(e){if(e.name!=='AbortError')show('Sharing was not available. Use Save to Files instead.')}
+  }else{downloadFile();show('Your browser cannot share these files directly. The prepared file(s) were downloaded.')}
+}
+function downloadFile(){
+  if(!selectedFile){show('Scan or choose a document first.');return}
+  remember();
+  const files=renamedFiles();
+  files.forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);a.remove()},i*350));
+}
+$('protonBtn').onclick=()=>sharePrepared('Proton Drive');$('googleBtn').onclick=()=>sharePrepared('Google Drive');$('shareBtn').onclick=()=>sharePrepared('the app you want');$('saveBtn').onclick=()=>{downloadFile();if(selectedFile)show(`Renamed copy saved. Suggested folder: ${$('folderEdit').value}`,true)};
+
+$('resetBtn').onclick=()=>{selectedFile=null;batchPreparedFiles=null;batchPages.forEach(p=>{try{URL.revokeObjectURL(p.url)}catch(e){}});batchPages=[];batchMode=false;activeReviewIndex=0;$('batchToggle').classList.remove('active');$('batchToggle').textContent='Batch: OFF';$('finishBatch').classList.add('hidden');$('batchBadge').classList.add('hidden');$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.',true)};$('clearRules').onclick=()=>{localStorage.removeItem('fileNestRulesV3');renderRules();show('Saved rules cleared.',true)};$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
+
+// Scanner — self-contained native JavaScript detector (no OpenCV)
+
+$('openScannerBtn').onclick=async()=>{
+  // IMPORTANT for iPhone Safari:
+  // Request camera permission immediately from this user tap.
+  await requestCameraFromUserGesture();
+};
+
+$('enableCameraBtn').onclick=async()=>{
+  await requestCameraFromUserGesture();
+};
+
+async function requestCameraFromUserGesture(){
+  $('cameraRecovery').classList.add('hidden');
+  $('scannerAvailability').classList.add('hidden');
+
+  if(!cameraSupported()){
+    availability('Camera access is unavailable here. Open the HTTPS GitHub Pages URL directly in Safari.');
+    $('cameraRecovery').classList.remove('hidden');
+    return;
+  }
+
+  try{
+    // Stop any stale stream first.
+    if(stream){
+      try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+      stream=null;
+    }
+
+    // This call is intentionally the first awaited action after the user tap,
+    // so Safari can show its Camera permission prompt.
+    const requestedStream=await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{
+        facingMode:{ideal:'environment'},
+        width:{ideal:1920},
+        height:{ideal:1080}
+      }
+    });
+
+    stream=requestedStream;
+    await openScannerWithExistingStream();
+  }catch(e){
+    console.error('Camera permission/open error',e);
+
+    const name=e?.name||'CameraError';
+
+    if(name==='NotAllowedError' || name==='SecurityError'){
+      availability(
+        'Camera permission is blocked. Tap Enable Camera. If Safari does not ask again, open the site settings for this page and set Camera to Allow.'
+      );
+      $('cameraRecovery').classList.remove('hidden');
+    }else if(name==='NotReadableError'){
+      availability(
+        'Safari has permission, but the camera is busy or unavailable. Close other camera apps/tabs, then tap Enable Camera.'
+      );
+      $('cameraRecovery').classList.remove('hidden');
+    }else if(name==='NotFoundError'){
+      availability('No usable camera was found on this device.');
+      $('cameraRecovery').classList.remove('hidden');
+    }else{
+      availability(`Could not open the camera (${name}). Tap Enable Camera to try again.`);
+      $('cameraRecovery').classList.remove('hidden');
+    }
+
+    if(stream){
+      try{stream.getTracks().forEach(t=>t.stop())}catch(x){}
+      stream=null;
+    }
+  }
+}
+
+async function openScannerWithExistingStream(){
+  if(!stream)return;
+
+  $('scanner').classList.remove('hidden');
+  $('scanner').setAttribute('aria-hidden','false');
+
+  const video=$('video');
+  video.srcObject=stream;
+  video.setAttribute('playsinline','');
+  video.muted=true;
+
+  await video.play();
+
+  stableFrames=0;
+  goodCornerFrames=0;
+  lockStartedAt=0;
+  lockConfidence=0;
+  lastGoodDetectionAt=0;
+  lastQuad=null;
+
+  updateMetrics(0,0);
+  setHint('Camera ready — place the full page inside the guide','ready');
+
+  scheduleScan();
+}
+
+function cameraSupported(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)}
+
+
+$('closeScanner').onclick=stopScanner;
+$('captureBtn').onclick=()=>captureScan(lastQuad);
+$('autoToggle').onclick=()=>{autoCapture=!autoCapture;$('autoToggle').textContent=`Auto: ${autoCapture?'ON':'OFF'}`};
+$('batchToggle').onclick=()=>{
+  batchMode=!batchMode;
+  $('batchToggle').classList.toggle('active',batchMode);
+  $('batchToggle').textContent=`Batch: ${batchMode?'ON':'OFF'}`;
+  $('finishBatch').classList.toggle('hidden',!batchMode);
+  $('batchBadge').classList.toggle('hidden',!batchMode);
+  updateBatchBadge();
+};
+$('finishBatch').onclick=()=>{if(!batchPages.length){setHint('Batch is empty — scan at least one page','');return}stopScanner();activeReviewIndex=0;showBatchReview()};
+$('formatPdf').onclick=()=>setScanFormat('pdf');
+$('formatJpeg').onclick=()=>setScanFormat('jpeg');
+$('modeOriginal').onclick=()=>setEnhancementMode('original');
+$('modeDocument').onclick=()=>setEnhancementMode('document');
+$('modeBW').onclick=()=>setEnhancementMode('bw');
+$('watermarkToggle').onchange=()=>{watermarkEnabled=$('watermarkToggle').checked;refreshReviewPreview()};
+$('retakeScan').onclick=()=>{
+  if(batchPages.length){const old=batchPages.splice(activeReviewIndex,1)[0];try{URL.revokeObjectURL(old.url)}catch(e){};activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1))}
+  hideReview();startScanner();
+};
+$('useScan').onclick=async()=>{
+  if(!batchPages.length&&!pendingScanBlob)return;
+  try{
+    $('useScan').disabled=true;$('useScan').textContent='Preparing…';
+    const pages=batchPages.length?batchPages:[{blob:pendingScanBlob,width:pendingScanWidth,height:pendingScanHeight,url:pendingScanURL}];
+    const processed=[];
+    for(let i=0;i<pages.length;i++){ $('reviewQuality').textContent=`Preparing page ${i+1} of ${pages.length}…`; processed.push(await renderFinalPage(pages[i],enhancementMode,watermarkEnabled)); }
+    let file,formatLabel;batchPreparedFiles=null;
+    if(scanOutputFormat==='pdf'){
+      const pdfBlob=await jpegPagesToPdfBlob(processed);if(!pdfBlob?.size)throw new Error('PDF was empty');
+      file=new File([pdfBlob],`Scan_${today}.pdf`,{type:'application/pdf',lastModified:Date.now()});
+      batchPreparedFiles=[file];formatLabel=processed.length>1?`PDF • ${processed.length} pages`:'PDF';selectFile(file,`Scanned document • ${formatLabel}`);
+    }else{
+      batchPreparedFiles=processed.map((p,i)=>new File([p.blob],processed.length>1?`Scan_${today}_p${String(i+1).padStart(2,'0')}.jpg`:`Scan_${today}.jpg`,{type:'image/jpeg',lastModified:Date.now()}));
+      file=batchPreparedFiles[0];formatLabel=processed.length>1?`JPEG batch • ${processed.length} images`:'JPEG';selectFile(file,`Scanned document • ${formatLabel}`);
+    }
+    const preview=processed[Math.min(activeReviewIndex,processed.length-1)];if(preview?.url){$('thumb').src=preview.url;$('thumb').style.display='inline-block'}
+    const totalKB=(batchPreparedFiles||[file]).reduce((s,f)=>s+f.size,0)/1024;
+    $('fileInfo').textContent=`✓ ${formatLabel} ready to file • ${totalKB.toFixed(1)} KB`;
+    $('scannerAvailability').textContent=`${formatLabel} prepared successfully. Continue below to classify, name, and save it.`;$('scannerAvailability').classList.remove('hidden');$('scannerAvailability').classList.add('success');
+    hideReview();const cards=document.querySelectorAll('.card');if(cards[1])setTimeout(()=>cards[1].scrollIntoView({behavior:'smooth',block:'start'}),80);
+  }catch(e){console.error(e);$('reviewQuality').textContent='Output error: '+(e?.message||'unknown error')}
+  finally{$('useScan').disabled=false;$('useScan').textContent='✓ Use Scan & Continue'}
+};
+function setScanFormat(format){
+  scanOutputFormat=format;$('formatPdf').classList.toggle('active',format==='pdf');$('formatJpeg').classList.toggle('active',format==='jpeg');
+  $('formatHelp').textContent=format==='pdf'?'PDF combines all batch pages into one document.':'JPEG exports each batch page as a separate image.';
+}
+function setEnhancementMode(mode){
+  enhancementMode=mode;$('modeOriginal').classList.toggle('active',mode==='original');$('modeDocument').classList.toggle('active',mode==='document');$('modeBW').classList.toggle('active',mode==='bw');refreshReviewPreview();
+}
+function updateBatchBadge(){if($('batchBadge'))$('batchBadge').textContent=`Batch • ${batchPages.length} page${batchPages.length===1?'':'s'}`}
+function updateGuide(state){const g=$('scanGuide');if(!g)return;g.classList.toggle('detected',state==='detected');g.classList.toggle('locked',state==='locked')}
+function smoothQuad(prev,current,alpha=.62){if(!prev)return current.map(p=>({...p}));return current.map((p,i)=>({x:prev[i].x*(1-alpha)+p.x*alpha,y:prev[i].y*(1-alpha)+p.y*alpha}))}
+function showBatchReview(){if(!batchPages.length)return;activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1));$('reviewImage').src=batchPages[activeReviewIndex].url;$('reviewQuality').textContent=`Page ${activeReviewIndex+1} of ${batchPages.length}`;renderBatchStrip();$('scanReview').classList.remove('hidden');$('scanReview').setAttribute('aria-hidden','false');refreshReviewPreview()}
+function renderBatchStrip(){const strip=$('batchStrip');strip.innerHTML='';strip.classList.toggle('hidden',batchPages.length<=1);batchPages.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='batchThumb';b.style.borderColor=i===activeReviewIndex?'#2dd4bf':'transparent';b.innerHTML=`<img src="${p.url}" alt="Page ${i+1}"><span>${i+1}</span>`;b.onclick=()=>{activeReviewIndex=i;$('reviewImage').src=p.url;$('reviewQuality').textContent=`Page ${i+1} of ${batchPages.length}`;renderBatchStrip();refreshReviewPreview()};strip.appendChild(b)})}
+
+function updateMetrics(corners,stable){
+  if($('metricEngine')) $('metricEngine').textContent='Native';
+  if(corners!==undefined && $('metricEdges')) $('metricEdges').textContent=String(corners);
+  if(stable!==undefined && $('metricStable')) $('metricStable').textContent=`${stable}/4`;
+}
+function setHint(text,state){
+  $('scanHint').textContent=text;
+  $('scanDot').className='scanDot'+(state?' '+state:'');
+  if($('scannerState')) $('scannerState').textContent=text;
+}
+function availability(msg){
+  $('scannerAvailability').textContent=msg;
+  $('scannerAvailability').classList.remove('hidden','success');
+}
+
+async function startScanner(){
+  // Used by Retake / Next Page.
+  // These are user taps as well, so route them through the same permission request.
+  return requestCameraFromUserGesture();
+}
+
+function stopScanner(){
+  if(scanTimer){clearTimeout(scanTimer);scanTimer=null}
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+  $('video').srcObject=null;
+  $('scanner').classList.add('hidden');
+  $('scanner').setAttribute('aria-hidden','true');
+  frameProcessing=false;
+  stableFrames=0;
+}
+function scheduleScan(){
+  if(!stream)return;
+  scanTimer=setTimeout(async()=>{
+    await processFrame();
+    scheduleScan();
+  },120);
+}
+function sizeOverlay(){
+  const r=$('video').getBoundingClientRect(),c=$('overlay'),dpr=window.devicePixelRatio||1;
+  c.width=Math.max(1,Math.floor(r.width*dpr));
+  c.height=Math.max(1,Math.floor(r.height*dpr));
+  return {w:c.width,h:c.height,dpr};
+}
+function drawGuideOnly(){
+  const c=$('overlay'),{w,h}=sizeOverlay(),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+}
+function drawQuad(q,srcW,srcH){
+  const c=$('overlay'),{w,h}=sizeOverlay(),ctx=c.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+
+  // video is object-fit:cover; map source coordinates accordingly.
+  const sourceRatio=srcW/srcH, boxRatio=w/h;
+  let scale,ox=0,oy=0;
+  if(sourceRatio>boxRatio){ scale=h/srcH; ox=(w-srcW*scale)/2; }
+  else { scale=w/srcW; oy=(h-srcH*scale)/2; }
+
+  const pts=q.map(p=>({x:p.x*scale+ox,y:p.y*scale+oy}));
+  ctx.fillStyle='rgba(49,243,186,.11)';
+  ctx.strokeStyle='#31f3ba';
+  ctx.lineWidth=4*(window.devicePixelRatio||1);
+  ctx.beginPath();
+  pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.closePath();ctx.fill();ctx.stroke();
+
+  ctx.fillStyle='#9affdf';
+  pts.forEach(p=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,7*(window.devicePixelRatio||1),0,Math.PI*2);
+    ctx.fill();
+  });
+}
+
+async function processFrame(){
+  if(frameProcessing||captureProcessing||!stream||!$('video').videoWidth)return;
+  frameProcessing=true;
+
+  try{
+    const video=$('video');
+    const work=$('workCanvas');
+    const W=400;
+    const H=Math.round(W*video.videoHeight/video.videoWidth);
+
+    work.width=W;
+    work.height=H;
+
+    const ctx=work.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(video,0,0,W,H);
+
+    const result=detectDocument(ctx.getImageData(0,0,W,H),W,H);
+
+    if(result?.quad){
+      const smoothed=smoothQuad(lastQuad,result.quad,.42);
+      const geometryOK=validDocumentQuad(smoothed,W,H,result);
+
+      if(!geometryOK){
+        lastQuad=null;
+        stableFrames=0;
+        goodCornerFrames=0;
+        lockStartedAt=0;
+        lockConfidence=0;
+        updateMetrics(0,0);
+        updateGuide('');
+        setHint('Finding the four page corners…','');
+        drawGuideOnly();
+        return;
+      }
+
+      const movement=quadMovement(lastQuad,smoothed);
+      lastQuad=smoothed;
+
+      // Only a validated document gets the green outline.
+      drawQuad(smoothed,W,H);
+      updateGuide('detected');
+
+      const now=performance.now();
+      const steadyEnough=movement<14;
+
+      if(steadyEnough){
+        lastGoodDetectionAt=now;
+        if(!lockStartedAt)lockStartedAt=now;
+
+        goodCornerFrames=Math.min(REQUIRED_GOOD_FRAMES,goodCornerFrames+1);
+        lockConfidence=Math.min(1,lockConfidence+.14);
+
+        const elapsed=now-lockStartedAt;
+        stableFrames=Math.max(
+          1,
+          Math.min(4,Math.floor((goodCornerFrames/REQUIRED_GOOD_FRAMES)*4))
+        );
+        updateMetrics(4,stableFrames);
+
+        if(goodCornerFrames<REQUIRED_GOOD_FRAMES){
+          setHint(
+            `Corners found — confirming ${goodCornerFrames}/${REQUIRED_GOOD_FRAMES}`,
+            'ready'
+          );
+        }else if(elapsed<AUTO_LOCK_MS){
+          const remaining=Math.max(0,AUTO_LOCK_MS-elapsed);
+          setHint(
+            `Corners locked — hold ${(remaining/1000).toFixed(1)}s`,
+            'ready'
+          );
+        }else{
+          setHint('Corners locked — capturing…','captured');
+          updateGuide('locked');
+
+          if(autoCapture){
+            const captureQ=smoothed.map(p=>({...p}));
+
+            stableFrames=0;
+            goodCornerFrames=0;
+            lockConfidence=0;
+            lockStartedAt=0;
+
+            updateMetrics(4,0);
+            setTimeout(()=>captureScan(captureQ,W,H),120);
+          }
+        }
+      }else{
+        // Real page is visible, but the phone is moving.
+        goodCornerFrames=Math.max(0,goodCornerFrames-1);
+        lockConfidence=Math.max(0,lockConfidence-.10);
+
+        if(now-lastGoodDetectionAt>500){
+          lockStartedAt=0;
+          goodCornerFrames=0;
+        }
+
+        stableFrames=Math.max(
+          0,
+          Math.min(4,Math.floor((goodCornerFrames/REQUIRED_GOOD_FRAMES)*4))
+        );
+        updateMetrics(4,stableFrames);
+        setHint('Corners found — steady the phone','ready');
+      }
+    }else{
+      lastQuad=null;
+      stableFrames=0;
+      goodCornerFrames=0;
+      lockStartedAt=0;
+      lockConfidence=0;
+      lastGoodDetectionAt=0;
+
+      updateMetrics(0,0);
+      updateGuide('');
+      setHint('Place the full page inside the guide','');
+      drawGuideOnly();
+    }
+  }catch(e){
+    console.error('Native detector error',e);
+    stableFrames=0;
+    goodCornerFrames=0;
+    lockStartedAt=0;
+    lockConfidence=0;
+    updateMetrics(0,0);
+    setHint('Detector error — tap Capture for manual scan','');
+  }finally{
+    frameProcessing=false;
+  }
+}
+
+function detectDocument(imageData,W,H){
+  const rgba=imageData.data;
+  const N=W*H;
+  const gray=new Uint8Array(N);
+
+  // grayscale
+  for(let i=0,p=0;i<N;i++,p+=4){
+    gray[i]=(rgba[p]*77 + rgba[p+1]*150 + rgba[p+2]*29)>>8;
+  }
+
+  // Local edge magnitude (Sobel-ish) and adaptive threshold.
+  const mag=new Uint16Array(N);
+  const samples=[];
+  for(let y=1;y<H-1;y++){
+    const row=y*W;
+    for(let x=1;x<W-1;x++){
+      const i=row+x;
+      const gx =
+        -gray[i-W-1]-2*gray[i-1]-gray[i+W-1]
+        +gray[i-W+1]+2*gray[i+1]+gray[i+W+1];
+      const gy =
+        -gray[i-W-1]-2*gray[i-W]-gray[i-W+1]
+        +gray[i+W-1]+2*gray[i+W]+gray[i+W+1];
+      const m=Math.min(1023,Math.abs(gx)+Math.abs(gy));
+      mag[i]=m;
+      if((x&3)===0 && (y&3)===0)samples.push(m);
+    }
+  }
+  samples.sort((a,b)=>a-b);
+  const p84=samples[Math.floor(samples.length*.84)]||80;
+  const threshold=Math.max(85,Math.min(260,p84*1.20));
+
+  // Binary edge map, then two dilation passes to connect broken paper borders.
+  let bin=new Uint8Array(N);
+  for(let i=0;i<N;i++) if(mag[i]>threshold) bin[i]=1;
+  for(let pass=0;pass<2;pass++){
+    const out=new Uint8Array(N);
+    for(let y=1;y<H-1;y++){
+      for(let x=1;x<W-1;x++){
+        const i=y*W+x;
+        if(bin[i]||bin[i-1]||bin[i+1]||bin[i-W]||bin[i+W]||
+           bin[i-W-1]||bin[i-W+1]||bin[i+W-1]||bin[i+W+1]) out[i]=1;
+      }
+    }
+    bin=out;
+  }
+
+  // Connected components of edge pixels.
+  const seen=new Uint8Array(N);
+  let best=null;
+  const minPixels=Math.floor(N*.008);
+  const qx=new Int16Array(N);
+  const qy=new Int16Array(N);
+
+  for(let sy=3;sy<H-3;sy+=2){
+    for(let sx=3;sx<W-3;sx+=2){
+      const si=sy*W+sx;
+      if(!bin[si]||seen[si])continue;
+
+      let head=0,tail=0;
+      qx[tail]=sx;qy[tail]=sy;tail++;seen[si]=1;
+      const points=[];
+      let minX=sx,maxX=sx,minY=sy,maxY=sy;
+
+      while(head<tail && tail<N){
+        const x=qx[head],y=qy[head];head++;
+        points.push({x,y});
+        if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;
+
+        for(let dy=-1;dy<=1;dy++){
+          for(let dx=-1;dx<=1;dx++){
+            if(!dx&&!dy)continue;
+            const nx=x+dx,ny=y+dy;
+            if(nx<=1||ny<=1||nx>=W-2||ny>=H-2)continue;
+            const ni=ny*W+nx;
+            if(bin[ni]&&!seen[ni]){
+              seen[ni]=1;
+              qx[tail]=nx;qy[tail]=ny;tail++;
+            }
+          }
+        }
+      }
+      if(points.length<minPixels)continue;
+
+      const boxArea=(maxX-minX)*(maxY-minY);
+      if(boxArea<N*.12)continue;
+
+      // Four extreme points approximate a convex document quadrilateral.
+      let tl=null,tr=null,br=null,bl=null;
+      let minSum=1e9,maxSum=-1e9,maxDiff=-1e9,minDiff=1e9;
+      for(const p of points){
+        const s=p.x+p.y,d=p.x-p.y;
+        if(s<minSum){minSum=s;tl=p}
+        if(s>maxSum){maxSum=s;br=p}
+        if(d>maxDiff){maxDiff=d;tr=p}
+        if(d<minDiff){minDiff=d;bl=p}
+      }
+      if(!tl||!tr||!br||!bl)continue;
+      const quad=[tl,tr,br,bl].map(p=>({x:p.x,y:p.y}));
+      const area=quadArea(quad);
+      const areaRatio=area/N;
+      if(areaRatio<.14||areaRatio>.94)continue;
+
+      const rectangularity=quadRectangularity(quad);
+      const center=quadCenterScore(quad,W,H);
+      const edgeFill=Math.min(1,points.length/(2*((maxX-minX)+(maxY-minY))+1));
+      const score=areaRatio*.9 + rectangularity*.55 + center*.16 + Math.min(.20,edgeFill*.08);
+
+      if(!best||score>best.score)best={quad,score,areaRatio,rectangularity};
+    }
+  }
+  return best;
+}
+
+function quadArea(q){
+  let a=0;
+  for(let i=0;i<4;i++){
+    const p=q[i],n=q[(i+1)%4];
+    a+=p.x*n.y-n.x*p.y;
+  }
+  return Math.abs(a)/2;
+}
+function angleAt(a,b,c){
+  const ux=a.x-b.x,uy=a.y-b.y,vx=c.x-b.x,vy=c.y-b.y;
+  const du=Math.hypot(ux,uy),dv=Math.hypot(vx,vy);
+  if(!du||!dv)return 0;
+  const cos=Math.max(-1,Math.min(1,(ux*vx+uy*vy)/(du*dv)));
+  return Math.acos(cos)*180/Math.PI;
+}
+function quadRectangularity(q){
+  const aa=[
+    angleAt(q[3],q[0],q[1]),angleAt(q[0],q[1],q[2]),
+    angleAt(q[1],q[2],q[3]),angleAt(q[2],q[3],q[0])
+  ];
+  const err=aa.reduce((s,a)=>s+Math.abs(90-a),0)/4;
+  return Math.max(0,1-err/55);
+}
+function quadCenterScore(q,W,H){
+  const cx=q.reduce((s,p)=>s+p.x,0)/4,cy=q.reduce((s,p)=>s+p.y,0)/4;
+  const d=Math.hypot((cx-W/2)/(W/2),(cy-H/2)/(H/2));
+  return Math.max(0,1-d);
+}
+
+function quadSideLengths(q){
+  return [
+    Math.hypot(q[1].x-q[0].x,q[1].y-q[0].y),
+    Math.hypot(q[2].x-q[1].x,q[2].y-q[1].y),
+    Math.hypot(q[3].x-q[2].x,q[3].y-q[2].y),
+    Math.hypot(q[0].x-q[3].x,q[0].y-q[3].y)
+  ];
+}
+
+function quadIsConvex(q){
+  let sign=0;
+  for(let i=0;i<4;i++){
+    const a=q[i],b=q[(i+1)%4],c=q[(i+2)%4];
+    const cross=(b.x-a.x)*(c.y-b.y)-(b.y-a.y)*(c.x-b.x);
+    if(Math.abs(cross)<1e-3)continue;
+    const s=Math.sign(cross);
+    if(!sign)sign=s;
+    else if(s!==sign)return false;
+  }
+  return true;
+}
+
+function validDocumentQuad(q,W,H,result){
+  if(!q || q.length!==4 || !result)return false;
+  if(!quadIsConvex(q))return false;
+
+  const areaRatio=quadArea(q)/(W*H);
+  if(areaRatio<.20 || areaRatio>.88)return false;
+
+  const rectangularity=quadRectangularity(q);
+  if(rectangularity<.66)return false;
+
+  const sides=quadSideLengths(q);
+  const minSide=Math.min(...sides);
+  const maxSide=Math.max(...sides);
+
+  if(minSide<Math.min(W,H)*.22)return false;
+  if(maxSide/minSide>5.2)return false;
+
+  const oppA=Math.max(sides[0],sides[2])/Math.max(1,Math.min(sides[0],sides[2]));
+  const oppB=Math.max(sides[1],sides[3])/Math.max(1,Math.min(sides[1],sides[3]));
+  if(oppA>1.9 || oppB>1.9)return false;
+
+  const mx=W*.015,my=H*.015;
+  for(const p of q){
+    if(p.x<mx || p.x>W-mx || p.y<my || p.y>H-my)return false;
+  }
+
+  return result.score>.56;
+}
+
+function quadMovement(a,b){
+  if(!a||!b)return 999;
+  return a.reduce((s,p,i)=>s+Math.hypot(p.x-b[i].x,p.y-b[i].y),0)/4;
+}
+
+async function captureScan(quad,analysisW,analysisH){
+  if(captureProcessing||!stream)return;captureProcessing=true;
+  try{
+    setHint('Capturing…','captured');const video=$('video'),full=document.createElement('canvas');full.width=video.videoWidth;full.height=video.videoHeight;full.getContext('2d').drawImage(video,0,0);
+    let output=full;
+    if(quad){const aw=analysisW||$('workCanvas').width||400,ah=analysisH||$('workCanvas').height||Math.round(aw*video.videoHeight/video.videoWidth),sx=video.videoWidth/aw,sy=video.videoHeight/ah;let fullQ=quad.map(p=>({x:p.x*sx,y:p.y*sy}));fullQ=insetQuad(fullQ,.008);output=warpPerspectiveNative(full,fullQ)}
+    const rawBlob=await new Promise(res=>output.toBlob(res,'image/jpeg',.95));const page={blob:rawBlob,width:output.width,height:output.height,url:URL.createObjectURL(rawBlob)};
+    pendingScanBlob=rawBlob;pendingScanWidth=output.width;pendingScanHeight=output.height;pendingScanURL=page.url;
+    if(batchMode){batchPages.push(page);updateBatchBadge();stableFrames=0;lastQuad=null;updateMetrics(0,0);updateGuide('');setHint(`✓ Page ${batchPages.length} captured — ready for next page`,'captured');setTimeout(()=>setHint('Place next page inside the guide',''),650)}
+    else{batchPages=[page];activeReviewIndex=0;setScanFormat('pdf');stopScanner();showBatchReview()}
+  }catch(e){console.error(e);setHint('Capture failed — try again','')}finally{captureProcessing=false}
+}
+function insetQuad(q,amount){const cx=q.reduce((s,p)=>s+p.x,0)/4,cy=q.reduce((s,p)=>s+p.y,0)/4;return q.map(p=>({x:p.x+(cx-p.x)*amount,y:p.y+(cy-p.y)*amount}))}
+
+
+async function jpegPagesToPdfBlob(pages){
+  if(!pages?.length)throw new Error('No pages available for PDF');
+  const encoder=new TextEncoder(),chunks=[],offsets=[0];let total=0;
+  const pushBytes=bytes=>{chunks.push(bytes);total+=bytes.length},pushText=t=>pushBytes(encoder.encode(t)),beginObj=n=>{offsets[n]=total;pushText(`${n} 0 obj\n`)},endObj=()=>pushText('\nendobj\n');
+  const pageCount=pages.length,size=3+pageCount*3,pageNums=[];pushText('%PDF-1.4\n');beginObj(1);pushText('<< /Type /Catalog /Pages 2 0 R >>');endObj();for(let i=0;i<pageCount;i++)pageNums.push(3+i*3);beginObj(2);pushText(`<< /Type /Pages /Kids [${pageNums.map(n=>`${n} 0 R`).join(' ')}] /Count ${pageCount} >>`);endObj();
+  for(let i=0;i<pageCount;i++){const p=pages[i],jpeg=new Uint8Array(await p.blob.arrayBuffer()),pageObj=3+i*3,imageObj=pageObj+1,contentObj=pageObj+2,portrait=p.height>=p.width,pageW=portrait?612:792,pageH=portrait?792:612,margin=18,scale=Math.min((pageW-margin*2)/p.width,(pageH-margin*2)/p.height),drawW=p.width*scale,drawH=p.height*scale,x=(pageW-drawW)/2,y=(pageH-drawH)/2;beginObj(pageObj);pushText(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im${i} ${imageObj} 0 R >> >> /Contents ${contentObj} 0 R >>`);endObj();beginObj(imageObj);pushText(`<< /Type /XObject /Subtype /Image /Width ${p.width} /Height ${p.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`);pushBytes(jpeg);pushText('\nendstream');endObj();const content=`q\n${drawW.toFixed(3)} 0 0 ${drawH.toFixed(3)} ${x.toFixed(3)} ${y.toFixed(3)} cm\n/Im${i} Do\nQ\n`,cb=encoder.encode(content);beginObj(contentObj);pushText(`<< /Length ${cb.length} >>\nstream\n`);pushBytes(cb);pushText('endstream');endObj()}
+  const xrefOffset=total;pushText(`xref\n0 ${size}\n`);pushText('0000000000 65535 f \n');for(let i=1;i<size;i++)pushText(String(offsets[i]||0).padStart(10,'0')+' 00000 n \n');pushText(`trailer\n<< /Size ${size} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);const bytes=new Uint8Array(total);let pos=0;for(const ch of chunks){bytes.set(ch,pos);pos+=ch.length}return new Blob([bytes.buffer],{type:'application/pdf'})
+}
+
+async function refreshReviewPreview(){
+  if(!batchPages.length)return;try{const p=await renderFinalPage(batchPages[activeReviewIndex],enhancementMode,watermarkEnabled);$('reviewImage').src=p.url}catch(e){console.error(e)}
+}
+async function renderFinalPage(page,mode,watermark){
+  const img=await blobToImage(page.blob),c=document.createElement('canvas');c.width=page.width;c.height=page.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,c.width,c.height);
+  if(mode!=='original'){const im=ctx.getImageData(0,0,c.width,c.height),d=im.data;if(mode==='document'){let sum=0,count=0,step=Math.max(4,Math.floor(Math.sqrt(c.width*c.height/50000)));for(let y=0;y<c.height;y+=step)for(let x=0;x<c.width;x+=step){const i=(y*c.width+x)*4;sum+=(d[i]+d[i+1]+d[i+2])/3;count++}const avg=count?sum/count:200,lift=Math.max(0,232-avg)*.55;for(let i=0;i<d.length;i+=4)for(let k=0;k<3;k++){let v=(d[i+k]-128)*1.10+128+lift;if(v>238)v=238+(v-238)*.32;d[i+k]=Math.max(0,Math.min(255,v))}}else{for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g>205?255:(g<115?0:Math.round((g-115)/90*255));d[i]=d[i+1]=d[i+2]=v}}ctx.putImageData(im,0,0)}
+  if(watermark)await drawWatermark(ctx,c.width,c.height);const blob=await new Promise(res=>c.toBlob(res,'image/jpeg',.94));return {blob,width:c.width,height:c.height,url:URL.createObjectURL(blob)}
+}
+function blobToImage(blob){return new Promise((resolve,reject)=>{const img=new Image(),u=URL.createObjectURL(blob);img.onload=()=>{URL.revokeObjectURL(u);resolve(img)};img.onerror=reject;img.src=u})}
+function drawWatermark(ctx,W,H){return new Promise(resolve=>{const logo=new Image();logo.onload=()=>{const size=Math.max(34,Math.min(W,H)*.065),pad=Math.max(10,size*.25);ctx.save();ctx.globalAlpha=.22;ctx.drawImage(logo,W-size-pad,H-size-pad,size,size);ctx.restore();resolve()};logo.onerror=()=>resolve();logo.src='./filenest-icon-1024.png'})}
+
+
+function hideReview(){
+  $('scanReview').classList.add('hidden');
+  $('scanReview').setAttribute('aria-hidden','true');
+}
+
+function warpPerspectiveNative(source,q){
+  // Output dimensions from opposite edge lengths.
+  const w1=Math.hypot(q[1].x-q[0].x,q[1].y-q[0].y);
+  const w2=Math.hypot(q[2].x-q[3].x,q[2].y-q[3].y);
+  const h1=Math.hypot(q[3].x-q[0].x,q[3].y-q[0].y);
+  const h2=Math.hypot(q[2].x-q[1].x,q[2].y-q[1].y);
+  let W=Math.max(240,Math.round(Math.max(w1,w2)));
+  let H=Math.max(320,Math.round(Math.max(h1,h2)));
+  const maxSide=1500;
+  const scale=Math.min(1,maxSide/Math.max(W,H));
+  W=Math.max(1,Math.round(W*scale));H=Math.max(1,Math.round(H*scale));
+
+  const out=document.createElement('canvas');out.width=W;out.height=H;
+  const octx=out.getContext('2d',{willReadFrequently:true});
+  const sctx=source.getContext('2d',{willReadFrequently:true});
+  const src=sctx.getImageData(0,0,source.width,source.height);
+  const dst=octx.createImageData(W,H);
+
+  // Homography from destination rectangle -> source quadrilateral.
+  const Hm=computeHomography(
+    [{x:0,y:0},{x:W-1,y:0},{x:W-1,y:H-1},{x:0,y:H-1}], q
+  );
+  if(!Hm)return source;
+
+  const sd=src.data,dd=dst.data,SW=source.width,SH=source.height;
+  let di=0;
+  for(let y=0;y<H;y++){
+    for(let x=0;x<W;x++,di+=4){
+      const den=Hm[6]*x+Hm[7]*y+1;
+      const fx=(Hm[0]*x+Hm[1]*y+Hm[2])/den;
+      const fy=(Hm[3]*x+Hm[4]*y+Hm[5])/den;
+      const ix=Math.max(0,Math.min(SW-1,Math.round(fx)));
+      const iy=Math.max(0,Math.min(SH-1,Math.round(fy)));
+      const si=(iy*SW+ix)*4;
+      dd[di]=sd[si];dd[di+1]=sd[si+1];dd[di+2]=sd[si+2];dd[di+3]=255;
+    }
+  }
+  octx.putImageData(dst,0,0);
+  return out;
+}
+function computeHomography(src,dst){
+  // Solve 8x8 system for h11..h32 with h33=1.
+  const A=[],b=[];
+  for(let i=0;i<4;i++){
+    const x=src[i].x,y=src[i].y,u=dst[i].x,v=dst[i].y;
+    A.push([x,y,1,0,0,0,-u*x,-u*y]); b.push(u);
+    A.push([0,0,0,x,y,1,-v*x,-v*y]); b.push(v);
+  }
+  for(let col=0;col<8;col++){
+    let pivot=col;
+    for(let r=col+1;r<8;r++)if(Math.abs(A[r][col])>Math.abs(A[pivot][col]))pivot=r;
+    if(Math.abs(A[pivot][col])<1e-9)return null;
+    [A[col],A[pivot]]=[A[pivot],A[col]];[b[col],b[pivot]]=[b[pivot],b[col]];
+    const d=A[col][col];
+    for(let c=col;c<8;c++)A[col][c]/=d;b[col]/=d;
+    for(let r=0;r<8;r++){
+      if(r===col)continue;
+      const f=A[r][col];
+      if(!f)continue;
+      for(let c=col;c<8;c++)A[r][c]-=f*A[col][c];
+      b[r]-=f*b[col];
+    }
+  }
+  return b;
+}
+
+initCategories();renderRules();
+</script>
+</body>
+</html>
