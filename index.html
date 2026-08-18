@@ -59,6 +59,9 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
       <div id="fileInfo" class="small" style="margin-top:10px">No document selected.</div>
     </div>
     <div id="scannerAvailability" class="status hidden"></div>
+    <div id="cameraRecovery" class="actions hidden">
+      <button id="enableCameraBtn" class="primary">Enable Camera</button>
+    </div>
   </section>
 
   <section class="card">
@@ -103,7 +106,6 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
   <div class="scannerTop"><strong>Document Scanner</strong><button id="closeScanner" class="closeBtn">Close</button></div>
-  <div id="cameraDiag" class="small" style="display:none;background:#3b1515;color:#ffd8d8;padding:8px 12px;text-align:center"></div>
   <div class="scannerStage">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="overlay"></canvas>
@@ -138,7 +140,6 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   </div>
   <div class="reviewActions">
     <button id="retakeScan" class="closeBtn">↶ Retake</button>
-    <button id="nextBatchPage" class="autoBtn hidden">＋ Next Page</button>
     <button id="useScan" class="cameraBtn">✓ Use Scan & Continue</button>
   </div>
 </div>
@@ -293,9 +294,106 @@ $('protonBtn').onclick=()=>sharePrepared('Proton Drive');$('googleBtn').onclick=
 $('resetBtn').onclick=()=>{selectedFile=null;batchPreparedFiles=null;batchPages.forEach(p=>{try{URL.revokeObjectURL(p.url)}catch(e){}});batchPages=[];batchMode=false;activeReviewIndex=0;$('batchToggle').classList.remove('active');$('batchToggle').textContent='Batch: OFF';$('finishBatch').classList.add('hidden');$('batchBadge').classList.add('hidden');$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.',true)};$('clearRules').onclick=()=>{localStorage.removeItem('fileNestRulesV3');renderRules();show('Saved rules cleared.',true)};$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
 
 // Scanner — self-contained native JavaScript detector (no OpenCV)
+
+$('openScannerBtn').onclick=async()=>{
+  // IMPORTANT for iPhone Safari:
+  // Request camera permission immediately from this user tap.
+  await requestCameraFromUserGesture();
+};
+
+$('enableCameraBtn').onclick=async()=>{
+  await requestCameraFromUserGesture();
+};
+
+async function requestCameraFromUserGesture(){
+  $('cameraRecovery').classList.add('hidden');
+  $('scannerAvailability').classList.add('hidden');
+
+  if(!cameraSupported()){
+    availability('Camera access is unavailable here. Open the HTTPS GitHub Pages URL directly in Safari.');
+    $('cameraRecovery').classList.remove('hidden');
+    return;
+  }
+
+  try{
+    // Stop any stale stream first.
+    if(stream){
+      try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+      stream=null;
+    }
+
+    // This call is intentionally the first awaited action after the user tap,
+    // so Safari can show its Camera permission prompt.
+    const requestedStream=await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{
+        facingMode:{ideal:'environment'},
+        width:{ideal:1920},
+        height:{ideal:1080}
+      }
+    });
+
+    stream=requestedStream;
+    await openScannerWithExistingStream();
+  }catch(e){
+    console.error('Camera permission/open error',e);
+
+    const name=e?.name||'CameraError';
+
+    if(name==='NotAllowedError' || name==='SecurityError'){
+      availability(
+        'Camera permission is blocked. Tap Enable Camera. If Safari does not ask again, open the site settings for this page and set Camera to Allow.'
+      );
+      $('cameraRecovery').classList.remove('hidden');
+    }else if(name==='NotReadableError'){
+      availability(
+        'Safari has permission, but the camera is busy or unavailable. Close other camera apps/tabs, then tap Enable Camera.'
+      );
+      $('cameraRecovery').classList.remove('hidden');
+    }else if(name==='NotFoundError'){
+      availability('No usable camera was found on this device.');
+      $('cameraRecovery').classList.remove('hidden');
+    }else{
+      availability(`Could not open the camera (${name}). Tap Enable Camera to try again.`);
+      $('cameraRecovery').classList.remove('hidden');
+    }
+
+    if(stream){
+      try{stream.getTracks().forEach(t=>t.stop())}catch(x){}
+      stream=null;
+    }
+  }
+}
+
+async function openScannerWithExistingStream(){
+  if(!stream)return;
+
+  $('scanner').classList.remove('hidden');
+  $('scanner').setAttribute('aria-hidden','false');
+
+  const video=$('video');
+  video.srcObject=stream;
+  video.setAttribute('playsinline','');
+  video.muted=true;
+
+  await video.play();
+
+  stableFrames=0;
+  goodCornerFrames=0;
+  lockStartedAt=0;
+  lockConfidence=0;
+  lastGoodDetectionAt=0;
+  lastQuad=null;
+
+  updateMetrics(0,0);
+  setHint('Camera ready — place the full page inside the guide','ready');
+
+  scheduleScan();
+}
+
 function cameraSupported(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)}
 
-$('openScannerBtn').onclick=startScanner;
+
 $('closeScanner').onclick=stopScanner;
 $('captureBtn').onclick=()=>captureScan(lastQuad);
 $('autoToggle').onclick=()=>{autoCapture=!autoCapture;$('autoToggle').textContent=`Auto: ${autoCapture?'ON':'OFF'}`};
@@ -318,11 +416,6 @@ $('retakeScan').onclick=()=>{
   if(batchPages.length){const old=batchPages.splice(activeReviewIndex,1)[0];try{URL.revokeObjectURL(old.url)}catch(e){};activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1))}
   hideReview();startScanner();
 };
-$('nextBatchPage').onclick=()=>{
-  hideReview();
-  startScanner();
-};
-
 $('useScan').onclick=async()=>{
   if(!batchPages.length&&!pendingScanBlob)return;
   try{
@@ -357,20 +450,13 @@ function setEnhancementMode(mode){
 function updateBatchBadge(){if($('batchBadge'))$('batchBadge').textContent=`Batch • ${batchPages.length} page${batchPages.length===1?'':'s'}`}
 function updateGuide(state){const g=$('scanGuide');if(!g)return;g.classList.toggle('detected',state==='detected');g.classList.toggle('locked',state==='locked')}
 function smoothQuad(prev,current,alpha=.62){if(!prev)return current.map(p=>({...p}));return current.map((p,i)=>({x:prev[i].x*(1-alpha)+p.x*alpha,y:prev[i].y*(1-alpha)+p.y*alpha}))}
-function showBatchReview(){
-  if(!batchPages.length)return;
-  activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1));
-  const p=batchPages[activeReviewIndex];
-  if(p.url)$('reviewImage').src=p.url;
-  $('reviewQuality').textContent=batchMode
-    ? `Batch page ${activeReviewIndex+1} of ${batchPages.length} — review before continuing`
-    : `Page ${activeReviewIndex+1}`;
-  $('nextBatchPage').classList.toggle('hidden',!batchMode);
-  $('useScan').textContent=batchMode?'✓ Finish Batch & Continue':'✓ Use Scan & Continue';
-  renderBatchStrip();
-  $('scanReview').classList.remove('hidden');
-  $('scanReview').setAttribute('aria-hidden','false');
-  refreshReviewPreview();
+function showBatchReview(){if(!batchPages.length)return;activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1));$('reviewImage').src=batchPages[activeReviewIndex].url;$('reviewQuality').textContent=`Page ${activeReviewIndex+1} of ${batchPages.length}`;renderBatchStrip();$('scanReview').classList.remove('hidden');$('scanReview').setAttribute('aria-hidden','false');refreshReviewPreview()}
+function renderBatchStrip(){const strip=$('batchStrip');strip.innerHTML='';strip.classList.toggle('hidden',batchPages.length<=1);batchPages.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='batchThumb';b.style.borderColor=i===activeReviewIndex?'#2dd4bf':'transparent';b.innerHTML=`<img src="${p.url}" alt="Page ${i+1}"><span>${i+1}</span>`;b.onclick=()=>{activeReviewIndex=i;$('reviewImage').src=p.url;$('reviewQuality').textContent=`Page ${i+1} of ${batchPages.length}`;renderBatchStrip();refreshReviewPreview()};strip.appendChild(b)})}
+
+function updateMetrics(corners,stable){
+  if($('metricEngine')) $('metricEngine').textContent='Native';
+  if(corners!==undefined && $('metricEdges')) $('metricEdges').textContent=String(corners);
+  if(stable!==undefined && $('metricStable')) $('metricStable').textContent=`${stable}/4`;
 }
 function setHint(text,state){
   $('scanHint').textContent=text;
@@ -383,78 +469,9 @@ function availability(msg){
 }
 
 async function startScanner(){
-  const diag=$('cameraDiag');
-  if(diag){diag.style.display='none';diag.textContent='';}
-
-  if(!cameraSupported()){
-    availability('Camera scanning is not available in this browser. Open the HTTPS GitHub Pages URL in Safari.');
-    return;
-  }
-
-  // Clear any stale camera object before asking Safari again.
-  if(stream){
-    try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
-    stream=null;
-  }
-
-  try{
-    $('scanner').classList.remove('hidden');
-    $('scanner').setAttribute('aria-hidden','false');
-    updateMetrics(0,0);
-    setHint('Requesting rear camera…','');
-
-    const constraints={
-      audio:false,
-      video:{
-        facingMode:{ideal:'environment'},
-        width:{ideal:1920},
-        height:{ideal:1080}
-      }
-    };
-
-    stream=await navigator.mediaDevices.getUserMedia(constraints);
-
-    const video=$('video');
-    video.srcObject=stream;
-    video.setAttribute('playsinline','');
-    video.muted=true;
-
-    await video.play();
-
-    stableFrames=0;
-    goodCornerFrames=0;
-    lockStartedAt=0;
-    lockConfidence=0;
-    lastGoodDetectionAt=0;
-    lastQuad=null;
-
-    setHint('Camera ready — place the full page inside the guide','ready');
-    scheduleScan();
-  }catch(e){
-    console.error('Camera open failed',e);
-
-    const name=e?.name||'CameraError';
-    const msg=e?.message||'Unknown camera error';
-    if(diag){
-      diag.style.display='block';
-      diag.textContent=`${name}: ${msg}`;
-    }
-
-    availability(
-      name==='NotAllowedError'
-        ? 'Camera permission was denied. In iPhone Settings > Safari (or the site settings), allow Camera access and try again.'
-        : name==='NotFoundError'
-        ? 'No usable camera was found.'
-        : name==='NotReadableError'
-        ? 'The camera is busy or unavailable. Close other camera apps/tabs and try again.'
-        : `Could not open camera: ${name}. See the red diagnostic message in the scanner.`
-    );
-
-    if(stream){
-      try{stream.getTracks().forEach(t=>t.stop())}catch(x){}
-      stream=null;
-    }
-  }
+  // Used by Retake / Next Page.
+  // These are user taps as well, so route them through the same permission request.
+  return requestCameraFromUserGesture();
 }
 
 function stopScanner(){
@@ -845,28 +862,8 @@ async function captureScan(quad,analysisW,analysisH){
     if(quad){const aw=analysisW||$('workCanvas').width||400,ah=analysisH||$('workCanvas').height||Math.round(aw*video.videoHeight/video.videoWidth),sx=video.videoWidth/aw,sy=video.videoHeight/ah;let fullQ=quad.map(p=>({x:p.x*sx,y:p.y*sy}));fullQ=insetQuad(fullQ,.008);output=warpPerspectiveNative(full,fullQ)}
     const rawBlob=await new Promise(res=>output.toBlob(res,'image/jpeg',.95));const page={blob:rawBlob,width:output.width,height:output.height,url:URL.createObjectURL(rawBlob)};
     pendingScanBlob=rawBlob;pendingScanWidth=output.width;pendingScanHeight=output.height;pendingScanURL=page.url;
-    if(batchMode){
-      batchPages.push(page);
-      updateBatchBadge();
-      activeReviewIndex=batchPages.length-1;
-      stableFrames=0;
-      lastQuad=null;
-      goodCornerFrames=0;
-      lockStartedAt=0;
-      lockConfidence=0;
-      lastGoodDetectionAt=0;
-      updateMetrics(0,0);
-      updateGuide('');
-      setScanFormat('pdf');
-      stopScanner();
-      showBatchReview();
-    }else{
-      batchPages=[page];
-      activeReviewIndex=0;
-      setScanFormat('pdf');
-      stopScanner();
-      showBatchReview();
-    }
+    if(batchMode){batchPages.push(page);updateBatchBadge();stableFrames=0;lastQuad=null;updateMetrics(0,0);updateGuide('');setHint(`✓ Page ${batchPages.length} captured — ready for next page`,'captured');setTimeout(()=>setHint('Place next page inside the guide',''),650)}
+    else{batchPages=[page];activeReviewIndex=0;setScanFormat('pdf');stopScanner();showBatchReview()}
   }catch(e){console.error(e);setHint('Capture failed — try again','')}finally{captureProcessing=false}
 }
 function insetQuad(q,amount){const cx=q.reduce((s,p)=>s+p.x,0)/4,cy=q.reduce((s,p)=>s+p.y,0)/4;return q.map(p=>({x:p.x+(cx-p.x)*amount,y:p.y+(cy-p.y)*amount}))}

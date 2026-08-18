@@ -42,19 +42,21 @@ Batch mode, PDF/JPEG output, enhancements, watermarking, and no-sidecar behavior
 are unchanged.
 
 
-CAMERA SAFE BATCH BUILD
------------------------
-This build intentionally starts from the last known camera-working version.
+CAMERA PERMISSION FIX
+---------------------
+The Scan Document button now calls navigator.mediaDevices.getUserMedia()
+immediately from the user's tap.
 
-Included:
-- Review after every batch page.
-- Retake / Next Page / Finish Batch & Continue.
-- Explicit camera error diagnostics shown in red inside the scanner.
-- Stale camera streams are stopped before reopening.
-- Existing strict four-corner lock remains unchanged.
+Why:
+- iPhone Safari requires the website to request camera access.
+- A website cannot silently grant its own camera permission.
+- Safari should prompt the user the first time the site requests camera access.
+- If permission was already allowed, the camera opens without prompting again.
 
-Temporarily NOT included:
-- The experimental light-background fallback detector.
+Recovery:
+- FileNest now shows an Enable Camera button when access is blocked or fails.
+- If Safari has remembered "Deny", Safari may not display the prompt again.
+  In that case, change the website Camera permission to Allow in Safari/site settings,
+  then return to FileNest and tap Enable Camera.
 
-The page displays "Build: Camera Safe Batch" under the FileNest heading so you
-can verify that Safari/GitHub Pages is actually serving this build rather than a cached older one.
+The document detector, PDF/JPEG output, and no-sidecar behavior are otherwise unchanged.
