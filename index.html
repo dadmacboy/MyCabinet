@@ -109,7 +109,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div class="scanGuide" id="scanGuide"></div><div id="batchBadge" class="batchBadge hidden">Batch • 0 pages</div>
     <div class="scannerHint"><span id="scanDot" class="scanDot"></span><span id="scanHint">Point camera at the document</span></div>
   </div>
-  <div id="scannerState" style="padding:8px 14px;background:#0b211f;color:#b9fff1;font-size:13px;text-align:center">Place the document roughly inside the guide. FileNest confirms the corners for about one second before auto-capture.</div>
+  <div id="scannerState" style="padding:8px 14px;background:#0b211f;color:#b9fff1;font-size:13px;text-align:center">Place the document roughly inside the guide. FileNest must visibly find all four page corners, confirm them across several frames, and hold the lock before auto-capture.</div>
   <div class="scanMetrics">
     <div class="scanMetric">Detector<b id="metricEngine">Native</b></div>
     <div class="scanMetric">Corners<b id="metricEdges">0</b></div>
@@ -243,7 +243,9 @@ let batchPreparedFiles=null;
 let lockStartedAt=0;
 let lockConfidence=0;
 let lastGoodDetectionAt=0;
-const AUTO_LOCK_MS=900;
+const AUTO_LOCK_MS=1400;
+let goodCornerFrames=0;
+const REQUIRED_GOOD_FRAMES=6;
 function sanitize(v){return String(v||"").trim().replace(/[\\/:*?"<>|#%{}~&]/g," ").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
 function values(){const out={Year:new Date().getFullYear()}; document.querySelectorAll('[data-field]').forEach(el=>out[el.dataset.field]=el.value); return out}
 function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
@@ -452,71 +454,130 @@ function drawQuad(q,srcW,srcH){
 async function processFrame(){
   if(frameProcessing||captureProcessing||!stream||!$('video').videoWidth)return;
   frameProcessing=true;
+
   try{
-    const video=$('video'),work=$('workCanvas'),W=400,H=Math.round(W*video.videoHeight/video.videoWidth);
-    work.width=W;work.height=H;const ctx=work.getContext('2d',{willReadFrequently:true});ctx.drawImage(video,0,0,W,H);
+    const video=$('video');
+    const work=$('workCanvas');
+    const W=400;
+    const H=Math.round(W*video.videoHeight/video.videoWidth);
+
+    work.width=W;
+    work.height=H;
+
+    const ctx=work.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(video,0,0,W,H);
+
     const result=detectDocument(ctx.getImageData(0,0,W,H),W,H);
+
     if(result?.quad){
-      const smoothed=smoothQuad(lastQuad,result.quad,.48);
+      const smoothed=smoothQuad(lastQuad,result.quad,.42);
+      const geometryOK=validDocumentQuad(smoothed,W,H,result);
+
+      if(!geometryOK){
+        lastQuad=null;
+        stableFrames=0;
+        goodCornerFrames=0;
+        lockStartedAt=0;
+        lockConfidence=0;
+        updateMetrics(0,0);
+        updateGuide('');
+        setHint('Finding the four page corners…','');
+        drawGuideOnly();
+        return;
+      }
+
       const movement=quadMovement(lastQuad,smoothed);
       lastQuad=smoothed;
+
+      // Only a validated document gets the green outline.
       drawQuad(smoothed,W,H);
       updateGuide('detected');
 
       const now=performance.now();
-      const goodGeometry=result.score>.50;
-      const steadyEnough=movement<20;
+      const steadyEnough=movement<14;
 
-      if(goodGeometry&&steadyEnough){
+      if(steadyEnough){
         lastGoodDetectionAt=now;
         if(!lockStartedAt)lockStartedAt=now;
 
-        lockConfidence=Math.min(1,lockConfidence+.18);
+        goodCornerFrames=Math.min(REQUIRED_GOOD_FRAMES,goodCornerFrames+1);
+        lockConfidence=Math.min(1,lockConfidence+.14);
+
         const elapsed=now-lockStartedAt;
-        stableFrames=Math.max(1,Math.min(4,Math.floor(lockConfidence*4+.25)));
+        stableFrames=Math.max(
+          1,
+          Math.min(4,Math.floor((goodCornerFrames/REQUIRED_GOOD_FRAMES)*4))
+        );
         updateMetrics(4,stableFrames);
 
-        if(elapsed<AUTO_LOCK_MS||lockConfidence<.72){
+        if(goodCornerFrames<REQUIRED_GOOD_FRAMES){
+          setHint(
+            `Corners found — confirming ${goodCornerFrames}/${REQUIRED_GOOD_FRAMES}`,
+            'ready'
+          );
+        }else if(elapsed<AUTO_LOCK_MS){
           const remaining=Math.max(0,AUTO_LOCK_MS-elapsed);
-          const tenths=Math.max(.1,Math.ceil(remaining/100)/10);
-          setHint(`Document found — steady ${tenths.toFixed(1)}s`,'ready');
+          setHint(
+            `Corners locked — hold ${(remaining/1000).toFixed(1)}s`,
+            'ready'
+          );
         }else{
-          setHint('Locked — capturing…','captured');
+          setHint('Corners locked — capturing…','captured');
           updateGuide('locked');
+
           if(autoCapture){
             const captureQ=smoothed.map(p=>({...p}));
+
             stableFrames=0;
+            goodCornerFrames=0;
             lockConfidence=0;
             lockStartedAt=0;
+
             updateMetrics(4,0);
-            setTimeout(()=>captureScan(captureQ,W,H),90);
+            setTimeout(()=>captureScan(captureQ,W,H),120);
           }
         }
       }else{
-        lockConfidence=Math.max(0,lockConfidence-.12);
-        if(now-lastGoodDetectionAt>420){
+        // Real page is visible, but the phone is moving.
+        goodCornerFrames=Math.max(0,goodCornerFrames-1);
+        lockConfidence=Math.max(0,lockConfidence-.10);
+
+        if(now-lastGoodDetectionAt>500){
           lockStartedAt=0;
-          lockConfidence=0;
-          stableFrames=0;
-        }else{
-          stableFrames=Math.max(0,Math.min(4,Math.floor(lockConfidence*4+.25)));
+          goodCornerFrames=0;
         }
+
+        stableFrames=Math.max(
+          0,
+          Math.min(4,Math.floor((goodCornerFrames/REQUIRED_GOOD_FRAMES)*4))
+        );
         updateMetrics(4,stableFrames);
-        setHint(result.score>.42?'Document found — steady the phone':'Adjust page until all four corners are clear','ready');
+        setHint('Corners found — steady the phone','ready');
       }
     }else{
       lastQuad=null;
       stableFrames=0;
+      goodCornerFrames=0;
       lockStartedAt=0;
       lockConfidence=0;
       lastGoodDetectionAt=0;
+
       updateMetrics(0,0);
       updateGuide('');
-      setHint('Place the document roughly inside the guide','');
-      drawGuideOnly()
+      setHint('Place the full page inside the guide','');
+      drawGuideOnly();
     }
-  }catch(e){console.error('Native detector error',e);updateMetrics(0,0);setHint('Detector error — tap Capture for manual scan','')}
-  finally{frameProcessing=false}
+  }catch(e){
+    console.error('Native detector error',e);
+    stableFrames=0;
+    goodCornerFrames=0;
+    lockStartedAt=0;
+    lockConfidence=0;
+    updateMetrics(0,0);
+    setHint('Detector error — tap Capture for manual scan','');
+  }finally{
+    frameProcessing=false;
+  }
 }
 
 function detectDocument(imageData,W,H){
@@ -661,6 +722,58 @@ function quadCenterScore(q,W,H){
   const d=Math.hypot((cx-W/2)/(W/2),(cy-H/2)/(H/2));
   return Math.max(0,1-d);
 }
+
+function quadSideLengths(q){
+  return [
+    Math.hypot(q[1].x-q[0].x,q[1].y-q[0].y),
+    Math.hypot(q[2].x-q[1].x,q[2].y-q[1].y),
+    Math.hypot(q[3].x-q[2].x,q[3].y-q[2].y),
+    Math.hypot(q[0].x-q[3].x,q[0].y-q[3].y)
+  ];
+}
+
+function quadIsConvex(q){
+  let sign=0;
+  for(let i=0;i<4;i++){
+    const a=q[i],b=q[(i+1)%4],c=q[(i+2)%4];
+    const cross=(b.x-a.x)*(c.y-b.y)-(b.y-a.y)*(c.x-b.x);
+    if(Math.abs(cross)<1e-3)continue;
+    const s=Math.sign(cross);
+    if(!sign)sign=s;
+    else if(s!==sign)return false;
+  }
+  return true;
+}
+
+function validDocumentQuad(q,W,H,result){
+  if(!q || q.length!==4 || !result)return false;
+  if(!quadIsConvex(q))return false;
+
+  const areaRatio=quadArea(q)/(W*H);
+  if(areaRatio<.20 || areaRatio>.88)return false;
+
+  const rectangularity=quadRectangularity(q);
+  if(rectangularity<.66)return false;
+
+  const sides=quadSideLengths(q);
+  const minSide=Math.min(...sides);
+  const maxSide=Math.max(...sides);
+
+  if(minSide<Math.min(W,H)*.22)return false;
+  if(maxSide/minSide>5.2)return false;
+
+  const oppA=Math.max(sides[0],sides[2])/Math.max(1,Math.min(sides[0],sides[2]));
+  const oppB=Math.max(sides[1],sides[3])/Math.max(1,Math.min(sides[1],sides[3]));
+  if(oppA>1.9 || oppB>1.9)return false;
+
+  const mx=W*.015,my=H*.015;
+  for(const p of q){
+    if(p.x<mx || p.x>W-mx || p.y<my || p.y>H-my)return false;
+  }
+
+  return result.score>.56;
+}
+
 function quadMovement(a,b){
   if(!a||!b)return 999;
   return a.reduce((s,p,i)=>s+Math.hypot(p.x-b[i].x,p.y-b[i].y),0)/4;

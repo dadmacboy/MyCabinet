@@ -18,3 +18,25 @@ BALANCED AUTO-CAPTURE UPDATE
 - A brief 90 ms settling delay is added after lock before the final frame is captured.
 
 Batch mode, PDF/JPEG output, enhancement modes, watermark, and no-sidecar behavior are unchanged.
+
+
+STRICT CORNER LOCK UPDATE
+-------------------------
+This update fixes false/early auto-capture.
+
+Auto-capture now requires ALL of the following:
+- A valid four-corner document quadrilateral.
+- The quadrilateral must be convex and sufficiently rectangular.
+- The page must occupy a reasonable portion of the camera frame.
+- Opposite sides must be reasonably consistent.
+- All four corners must be inside the camera frame.
+- A green four-corner outline must actually be visible.
+- Six consecutive good corner confirmations.
+- Approximately 1.4 seconds of maintained lock after the corners are established.
+
+If FileNest sees only a questionable contour, it displays:
+"Finding the four page corners…"
+and automatic capture is blocked.
+
+Batch mode, PDF/JPEG output, enhancements, watermarking, and no-sidecar behavior
+are unchanged.
