@@ -103,6 +103,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
   <div class="scannerTop"><strong>Document Scanner</strong><button id="closeScanner" class="closeBtn">Close</button></div>
+  <div id="cameraDiag" class="small" style="display:none;background:#3b1515;color:#ffd8d8;padding:8px 12px;text-align:center"></div>
   <div class="scannerStage">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="overlay"></canvas>
@@ -362,7 +363,7 @@ function showBatchReview(){
   const p=batchPages[activeReviewIndex];
   if(p.url)$('reviewImage').src=p.url;
   $('reviewQuality').textContent=batchMode
-    ? `Batch page ${activeReviewIndex+1} of ${batchPages.length} — review this page`
+    ? `Batch page ${activeReviewIndex+1} of ${batchPages.length} — review before continuing`
     : `Page ${activeReviewIndex+1}`;
   $('nextBatchPage').classList.toggle('hidden',!batchMode);
   $('useScan').textContent=batchMode?'✓ Finish Batch & Continue':'✓ Use Scan & Continue';
@@ -382,36 +383,80 @@ function availability(msg){
 }
 
 async function startScanner(){
+  const diag=$('cameraDiag');
+  if(diag){diag.style.display='none';diag.textContent='';}
+
   if(!cameraSupported()){
-    availability('Camera scanning requires Safari/Chrome on an HTTPS page.');
+    availability('Camera scanning is not available in this browser. Open the HTTPS GitHub Pages URL in Safari.');
     return;
   }
-  if(stream) return;
+
+  // Clear any stale camera object before asking Safari again.
+  if(stream){
+    try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+    stream=null;
+  }
+
   try{
     $('scanner').classList.remove('hidden');
     $('scanner').setAttribute('aria-hidden','false');
     updateMetrics(0,0);
-    setHint('Opening rear camera…','');
-    stream=await navigator.mediaDevices.getUserMedia({
+    setHint('Requesting rear camera…','');
+
+    const constraints={
+      audio:false,
       video:{
         facingMode:{ideal:'environment'},
         width:{ideal:1920},
         height:{ideal:1080}
-      },
-      audio:false
-    });
-    $('video').srcObject=stream;
-    await $('video').play();
+      }
+    };
+
+    stream=await navigator.mediaDevices.getUserMedia(constraints);
+
+    const video=$('video');
+    video.srcObject=stream;
+    video.setAttribute('playsinline','');
+    video.muted=true;
+
+    await video.play();
+
     stableFrames=0;
+    goodCornerFrames=0;
+    lockStartedAt=0;
+    lockConfidence=0;
+    lastGoodDetectionAt=0;
     lastQuad=null;
-    setHint('Place the document roughly inside the guide','');
+
+    setHint('Camera ready — place the full page inside the guide','ready');
     scheduleScan();
   }catch(e){
-    console.error(e);
-    availability('Could not open the camera. Allow Camera permission and use the HTTPS GitHub Pages site.');
-    stopScanner();
+    console.error('Camera open failed',e);
+
+    const name=e?.name||'CameraError';
+    const msg=e?.message||'Unknown camera error';
+    if(diag){
+      diag.style.display='block';
+      diag.textContent=`${name}: ${msg}`;
+    }
+
+    availability(
+      name==='NotAllowedError'
+        ? 'Camera permission was denied. In iPhone Settings > Safari (or the site settings), allow Camera access and try again.'
+        : name==='NotFoundError'
+        ? 'No usable camera was found.'
+        : name==='NotReadableError'
+        ? 'The camera is busy or unavailable. Close other camera apps/tabs and try again.'
+        : `Could not open camera: ${name}. See the red diagnostic message in the scanner.`
+    );
+
+    if(stream){
+      try{stream.getTracks().forEach(t=>t.stop())}catch(x){}
+      stream=null;
+    }
   }
 }
+
 function stopScanner(){
   if(scanTimer){clearTimeout(scanTimer);scanTimer=null}
   if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
@@ -577,7 +622,7 @@ async function processFrame(){
 
       updateMetrics(0,0);
       updateGuide('');
-      setHint('Place the full page inside the guide — light backgrounds may take a moment','');
+      setHint('Place the full page inside the guide','');
       drawGuideOnly();
     }
   }catch(e){
@@ -591,70 +636,6 @@ async function processFrame(){
   }finally{
     frameProcessing=false;
   }
-}
-
-
-function detectBrightPageFallback(gray,W,H){
-  // Fallback for light paper on light backgrounds.
-  // Uses brightness consistency and page-like geometry instead of requiring a strong border.
-  const N=W*H;
-  let mean=0;
-  for(let i=0;i<N;i+=8)mean+=gray[i];
-  mean/=Math.ceil(N/8);
-
-  const candidates=[];
-  const widths=[.52,.60,.68,.76,.82];
-  const aspects=[.707,.75,.80,1.25,1.414];
-  const cxs=[.46,.50,.54],cys=[.47,.52,.57];
-
-  function sampleStats(x0,y0,x1,y1){
-    let sum=0,sum2=0,n=0;
-    const step=4;
-    for(let y=Math.max(0,y0);y<Math.min(H,y1);y+=step){
-      for(let x=Math.max(0,x0);x<Math.min(W,x1);x+=step){
-        const v=gray[y*W+x];sum+=v;sum2+=v*v;n++;
-      }
-    }
-    if(!n)return {avg:0,sd:999};
-    const avg=sum/n;
-    return {avg,sd:Math.sqrt(Math.max(0,sum2/n-avg*avg))};
-  }
-
-  for(const wf of widths)for(const ar of aspects)for(const cxF of cxs)for(const cyF of cys){
-    const rw=W*wf;
-    const rh=ar<1?rw/ar:rw/ar;
-    if(rh>H*.88||rh<H*.32)continue;
-    const cx=W*cxF,cy=H*cyF;
-    const x0=Math.round(cx-rw/2),x1=Math.round(cx+rw/2);
-    const y0=Math.round(cy-rh/2),y1=Math.round(cy+rh/2);
-    if(x0<4||y0<4||x1>W-4||y1>H-4)continue;
-
-    const inside=sampleStats(x0,y0,x1,y1);
-    const pad=Math.max(7,Math.round(Math.min(rw,rh)*.035));
-    const top=sampleStats(x0,y0-pad,x1,y0);
-    const bottom=sampleStats(x0,y1,x1,y1+pad);
-    const left=sampleStats(x0-pad,y0,x0,y1);
-    const right=sampleStats(x1,y0,x1+pad,y1);
-    const outside=(top.avg+bottom.avg+left.avg+right.avg)/4;
-
-    // Light pages may have only subtle contrast. Internal uniformity helps distinguish paper.
-    const brightnessScore=Math.max(0,Math.min(1,(inside.avg-155)/85));
-    const uniformScore=Math.max(0,Math.min(1,1-inside.sd/75));
-    const edgeAdvantage=Math.max(-.2,Math.min(.3,(inside.avg-outside)/55));
-    const score=.54*brightnessScore+.34*uniformScore+.12+.22*edgeAdvantage;
-
-    if(inside.avg>165 && score>.48){
-      candidates.push({
-        quad:[{x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1}],
-        score,
-        rectangularity:1,
-        areaRatio:(rw*rh)/(W*H),
-        fallback:true
-      });
-    }
-  }
-  candidates.sort((a,b)=>b.score-a.score);
-  return candidates[0]||null;
 }
 
 function detectDocument(imageData,W,H){
@@ -768,10 +749,6 @@ function detectDocument(imageData,W,H){
       if(!best||score>best.score)best={quad,score,areaRatio,rectangularity};
     }
   }
-  if(best && best.score>.54)return best;
-  const light=detectBrightPageFallback(gray,W,H);
-  if(!best)return light;
-  if(light && light.score>best.score*.90)return light;
   return best;
 }
 
@@ -845,17 +822,14 @@ function validDocumentQuad(q,W,H,result){
 
   const oppA=Math.max(sides[0],sides[2])/Math.max(1,Math.min(sides[0],sides[2]));
   const oppB=Math.max(sides[1],sides[3])/Math.max(1,Math.min(sides[1],sides[3]));
-  if(oppA>2.15 || oppB>2.15)return false;
+  if(oppA>1.9 || oppB>1.9)return false;
 
   const mx=W*.015,my=H*.015;
   for(const p of q){
     if(p.x<mx || p.x>W-mx || p.y<my || p.y>H-my)return false;
   }
 
-  if(result.fallback){
-    return result.score>.48 && rectangularity>.78 && areaRatio>.24;
-  }
-  return result.score>.54;
+  return result.score>.56;
 }
 
 function quadMovement(a,b){
