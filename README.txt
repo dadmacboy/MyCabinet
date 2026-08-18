@@ -40,3 +40,19 @@ and automatic capture is blocked.
 
 Batch mode, PDF/JPEG output, enhancements, watermarking, and no-sidecar behavior
 are unchanged.
+
+
+LIGHT BACKGROUND & CONTROLLED BATCH UPDATE
+------------------------------------------
+Corner detection:
+- Added a fallback for light paper on light backgrounds.
+- It uses page brightness, internal uniformity, and page-like geometry when the outer edge has weak contrast.
+- Normal edge-based detection remains the primary detector.
+- Perspective/geometry validation remains in place.
+
+Batch workflow:
+- Batch no longer continuously captures pages.
+- After each capture, the camera stops and shows that page for review.
+- You can choose Retake, Next Page, or Finish Batch & Continue.
+- Next Page explicitly reopens the scanner for the next sheet.
+- Finish creates the multipage PDF or JPEG set from the reviewed pages.

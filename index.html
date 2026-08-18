@@ -137,6 +137,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   </div>
   <div class="reviewActions">
     <button id="retakeScan" class="closeBtn">↶ Retake</button>
+    <button id="nextBatchPage" class="autoBtn hidden">＋ Next Page</button>
     <button id="useScan" class="cameraBtn">✓ Use Scan & Continue</button>
   </div>
 </div>
@@ -316,6 +317,11 @@ $('retakeScan').onclick=()=>{
   if(batchPages.length){const old=batchPages.splice(activeReviewIndex,1)[0];try{URL.revokeObjectURL(old.url)}catch(e){};activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1))}
   hideReview();startScanner();
 };
+$('nextBatchPage').onclick=()=>{
+  hideReview();
+  startScanner();
+};
+
 $('useScan').onclick=async()=>{
   if(!batchPages.length&&!pendingScanBlob)return;
   try{
@@ -350,13 +356,20 @@ function setEnhancementMode(mode){
 function updateBatchBadge(){if($('batchBadge'))$('batchBadge').textContent=`Batch • ${batchPages.length} page${batchPages.length===1?'':'s'}`}
 function updateGuide(state){const g=$('scanGuide');if(!g)return;g.classList.toggle('detected',state==='detected');g.classList.toggle('locked',state==='locked')}
 function smoothQuad(prev,current,alpha=.62){if(!prev)return current.map(p=>({...p}));return current.map((p,i)=>({x:prev[i].x*(1-alpha)+p.x*alpha,y:prev[i].y*(1-alpha)+p.y*alpha}))}
-function showBatchReview(){if(!batchPages.length)return;activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1));$('reviewImage').src=batchPages[activeReviewIndex].url;$('reviewQuality').textContent=`Page ${activeReviewIndex+1} of ${batchPages.length}`;renderBatchStrip();$('scanReview').classList.remove('hidden');$('scanReview').setAttribute('aria-hidden','false');refreshReviewPreview()}
-function renderBatchStrip(){const strip=$('batchStrip');strip.innerHTML='';strip.classList.toggle('hidden',batchPages.length<=1);batchPages.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='batchThumb';b.style.borderColor=i===activeReviewIndex?'#2dd4bf':'transparent';b.innerHTML=`<img src="${p.url}" alt="Page ${i+1}"><span>${i+1}</span>`;b.onclick=()=>{activeReviewIndex=i;$('reviewImage').src=p.url;$('reviewQuality').textContent=`Page ${i+1} of ${batchPages.length}`;renderBatchStrip();refreshReviewPreview()};strip.appendChild(b)})}
-
-function updateMetrics(corners,stable){
-  if($('metricEngine')) $('metricEngine').textContent='Native';
-  if(corners!==undefined && $('metricEdges')) $('metricEdges').textContent=String(corners);
-  if(stable!==undefined && $('metricStable')) $('metricStable').textContent=`${stable}/4`;
+function showBatchReview(){
+  if(!batchPages.length)return;
+  activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1));
+  const p=batchPages[activeReviewIndex];
+  if(p.url)$('reviewImage').src=p.url;
+  $('reviewQuality').textContent=batchMode
+    ? `Batch page ${activeReviewIndex+1} of ${batchPages.length} — review this page`
+    : `Page ${activeReviewIndex+1}`;
+  $('nextBatchPage').classList.toggle('hidden',!batchMode);
+  $('useScan').textContent=batchMode?'✓ Finish Batch & Continue':'✓ Use Scan & Continue';
+  renderBatchStrip();
+  $('scanReview').classList.remove('hidden');
+  $('scanReview').setAttribute('aria-hidden','false');
+  refreshReviewPreview();
 }
 function setHint(text,state){
   $('scanHint').textContent=text;
@@ -564,7 +577,7 @@ async function processFrame(){
 
       updateMetrics(0,0);
       updateGuide('');
-      setHint('Place the full page inside the guide','');
+      setHint('Place the full page inside the guide — light backgrounds may take a moment','');
       drawGuideOnly();
     }
   }catch(e){
@@ -578,6 +591,70 @@ async function processFrame(){
   }finally{
     frameProcessing=false;
   }
+}
+
+
+function detectBrightPageFallback(gray,W,H){
+  // Fallback for light paper on light backgrounds.
+  // Uses brightness consistency and page-like geometry instead of requiring a strong border.
+  const N=W*H;
+  let mean=0;
+  for(let i=0;i<N;i+=8)mean+=gray[i];
+  mean/=Math.ceil(N/8);
+
+  const candidates=[];
+  const widths=[.52,.60,.68,.76,.82];
+  const aspects=[.707,.75,.80,1.25,1.414];
+  const cxs=[.46,.50,.54],cys=[.47,.52,.57];
+
+  function sampleStats(x0,y0,x1,y1){
+    let sum=0,sum2=0,n=0;
+    const step=4;
+    for(let y=Math.max(0,y0);y<Math.min(H,y1);y+=step){
+      for(let x=Math.max(0,x0);x<Math.min(W,x1);x+=step){
+        const v=gray[y*W+x];sum+=v;sum2+=v*v;n++;
+      }
+    }
+    if(!n)return {avg:0,sd:999};
+    const avg=sum/n;
+    return {avg,sd:Math.sqrt(Math.max(0,sum2/n-avg*avg))};
+  }
+
+  for(const wf of widths)for(const ar of aspects)for(const cxF of cxs)for(const cyF of cys){
+    const rw=W*wf;
+    const rh=ar<1?rw/ar:rw/ar;
+    if(rh>H*.88||rh<H*.32)continue;
+    const cx=W*cxF,cy=H*cyF;
+    const x0=Math.round(cx-rw/2),x1=Math.round(cx+rw/2);
+    const y0=Math.round(cy-rh/2),y1=Math.round(cy+rh/2);
+    if(x0<4||y0<4||x1>W-4||y1>H-4)continue;
+
+    const inside=sampleStats(x0,y0,x1,y1);
+    const pad=Math.max(7,Math.round(Math.min(rw,rh)*.035));
+    const top=sampleStats(x0,y0-pad,x1,y0);
+    const bottom=sampleStats(x0,y1,x1,y1+pad);
+    const left=sampleStats(x0-pad,y0,x0,y1);
+    const right=sampleStats(x1,y0,x1+pad,y1);
+    const outside=(top.avg+bottom.avg+left.avg+right.avg)/4;
+
+    // Light pages may have only subtle contrast. Internal uniformity helps distinguish paper.
+    const brightnessScore=Math.max(0,Math.min(1,(inside.avg-155)/85));
+    const uniformScore=Math.max(0,Math.min(1,1-inside.sd/75));
+    const edgeAdvantage=Math.max(-.2,Math.min(.3,(inside.avg-outside)/55));
+    const score=.54*brightnessScore+.34*uniformScore+.12+.22*edgeAdvantage;
+
+    if(inside.avg>165 && score>.48){
+      candidates.push({
+        quad:[{x:x0,y:y0},{x:x1,y:y0},{x:x1,y:y1},{x:x0,y:y1}],
+        score,
+        rectangularity:1,
+        areaRatio:(rw*rh)/(W*H),
+        fallback:true
+      });
+    }
+  }
+  candidates.sort((a,b)=>b.score-a.score);
+  return candidates[0]||null;
 }
 
 function detectDocument(imageData,W,H){
@@ -691,6 +768,10 @@ function detectDocument(imageData,W,H){
       if(!best||score>best.score)best={quad,score,areaRatio,rectangularity};
     }
   }
+  if(best && best.score>.54)return best;
+  const light=detectBrightPageFallback(gray,W,H);
+  if(!best)return light;
+  if(light && light.score>best.score*.90)return light;
   return best;
 }
 
@@ -764,14 +845,17 @@ function validDocumentQuad(q,W,H,result){
 
   const oppA=Math.max(sides[0],sides[2])/Math.max(1,Math.min(sides[0],sides[2]));
   const oppB=Math.max(sides[1],sides[3])/Math.max(1,Math.min(sides[1],sides[3]));
-  if(oppA>1.9 || oppB>1.9)return false;
+  if(oppA>2.15 || oppB>2.15)return false;
 
   const mx=W*.015,my=H*.015;
   for(const p of q){
     if(p.x<mx || p.x>W-mx || p.y<my || p.y>H-my)return false;
   }
 
-  return result.score>.56;
+  if(result.fallback){
+    return result.score>.48 && rectangularity>.78 && areaRatio>.24;
+  }
+  return result.score>.54;
 }
 
 function quadMovement(a,b){
@@ -787,8 +871,28 @@ async function captureScan(quad,analysisW,analysisH){
     if(quad){const aw=analysisW||$('workCanvas').width||400,ah=analysisH||$('workCanvas').height||Math.round(aw*video.videoHeight/video.videoWidth),sx=video.videoWidth/aw,sy=video.videoHeight/ah;let fullQ=quad.map(p=>({x:p.x*sx,y:p.y*sy}));fullQ=insetQuad(fullQ,.008);output=warpPerspectiveNative(full,fullQ)}
     const rawBlob=await new Promise(res=>output.toBlob(res,'image/jpeg',.95));const page={blob:rawBlob,width:output.width,height:output.height,url:URL.createObjectURL(rawBlob)};
     pendingScanBlob=rawBlob;pendingScanWidth=output.width;pendingScanHeight=output.height;pendingScanURL=page.url;
-    if(batchMode){batchPages.push(page);updateBatchBadge();stableFrames=0;lastQuad=null;updateMetrics(0,0);updateGuide('');setHint(`✓ Page ${batchPages.length} captured — ready for next page`,'captured');setTimeout(()=>setHint('Place next page inside the guide',''),650)}
-    else{batchPages=[page];activeReviewIndex=0;setScanFormat('pdf');stopScanner();showBatchReview()}
+    if(batchMode){
+      batchPages.push(page);
+      updateBatchBadge();
+      activeReviewIndex=batchPages.length-1;
+      stableFrames=0;
+      lastQuad=null;
+      goodCornerFrames=0;
+      lockStartedAt=0;
+      lockConfidence=0;
+      lastGoodDetectionAt=0;
+      updateMetrics(0,0);
+      updateGuide('');
+      setScanFormat('pdf');
+      stopScanner();
+      showBatchReview();
+    }else{
+      batchPages=[page];
+      activeReviewIndex=0;
+      setScanFormat('pdf');
+      stopScanner();
+      showBatchReview();
+    }
   }catch(e){console.error(e);setHint('Capture failed — try again','')}finally{captureProcessing=false}
 }
 function insetQuad(q,amount){const cx=q.reduce((s,p)=>s+p.x,0)/4,cy=q.reduce((s,p)=>s+p.y,0)/4;return q.map(p=>({x:p.x+(cx-p.x)*amount,y:p.y+(cy-p.y)*amount}))}
