@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="FileNest" />
 <link rel="manifest" href="./manifest.webmanifest" />
-<title>FileNest Native Scanner</title>
+<title>FileNest Scanner Upgrade</title>
 <style>
 :root{--bg:#f4f7f7;--card:#fff;--ink:#173131;--muted:#617676;--brand:#0f766e;--brand2:#14b8a6;--line:#d8e3e2;--warn:#9a6700;--danger:#b42318;--blue:#2563eb;--purple:#6d28d9;--shadow:0 12px 28px rgba(15,118,110,.10)}
 *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#e9f7f5 0,#f7f9f9 220px);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
@@ -23,7 +23,7 @@ label{display:block;font-weight:700;margin:14px 0 6px} input,select,textarea,but
 button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px}.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}.secondary{background:#e9f2f1;color:#174d49}.danger{background:#feeceb;color:var(--danger)}.blue{background:var(--blue);color:#fff}.purple{background:var(--purple);color:#fff}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.actions>*{flex:1 1 180px}
 .preview{background:#102f2d;color:#eafffb;border-radius:16px;padding:16px;overflow-wrap:anywhere}.preview .folder{color:#9be6db}.preview .name{font-weight:800;font-size:18px;margin-top:8px}.status{padding:10px 12px;border-radius:12px;background:#fff6d8;color:var(--warn);margin-top:12px}.success{background:#e8faf4;color:#176b52}.hidden{display:none!important}.rule{border-top:1px solid var(--line);padding:12px 0}.rule:first-child{border-top:0}.rule strong{display:block}.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}.toggle{display:flex;gap:8px;align-items:center;margin-top:10px}.toggle input{width:20px;height:20px}.destination{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fafdfd}.destination h3{margin:0 0 5px;font-size:16px}.destination p{margin:0;color:var(--muted);font-size:13px}
 /* scanner */
-.scanner{position:fixed;inset:0;background:#071413;z-index:99;color:white;display:flex;flex-direction:column}.scannerTop{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}.scannerTop strong{font-size:17px}.scannerStage{position:relative;flex:1;min-height:0;overflow:hidden;background:#000}.scanner video,.scanner canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scanner canvas{pointer-events:none}.scanGuide{position:absolute;left:8%;right:8%;top:15%;bottom:15%;border:2px dashed rgba(255,255,255,.55);border-radius:10px;pointer-events:none}.scannerHint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.65);padding:8px 12px;border-radius:999px;font-size:13px;white-space:nowrap}.scannerControls{padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;background:#071413}.scannerControls button{flex:1}.scanDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:7px}.scanDot.ready{background:#22c55e}.scanDot.captured{background:#60a5fa}.cameraBtn{background:white;color:#123}.closeBtn{background:#223c39;color:#fff}.autoBtn{background:#0f766e;color:#fff}
+.scanner{position:fixed;inset:0;background:#071413;z-index:99;color:white;display:flex;flex-direction:column}.scannerTop{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}.scannerTop strong{font-size:17px}.scannerStage{position:relative;flex:1;min-height:0;overflow:hidden;background:#000}.scanner video,.scanner canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scanner canvas{pointer-events:none}.scanGuide{position:absolute;left:8%;right:8%;top:15%;bottom:15%;border:2px dashed rgba(255,255,255,.55);border-radius:10px;pointer-events:none;transition:.18s ease}.scanGuide.detected{opacity:.16;transform:scale(.985)}.scanGuide.locked{opacity:0}.scannerHint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.65);padding:8px 12px;border-radius:999px;font-size:13px;white-space:nowrap}.scannerControls{padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;background:#071413}.scannerControls button{flex:1}.scanDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:7px}.scanDot.ready{background:#22c55e}.scanDot.captured{background:#60a5fa}.cameraBtn{background:white;color:#123}.closeBtn{background:#223c39;color:#fff}.autoBtn{background:#0f766e;color:#fff}.batchBtn{background:#374151;color:#fff}.batchBtn.active{background:#7c3aed}.finishBatchBtn{background:#f59e0b;color:#1f2937}.batchBadge{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.68);color:#fff;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800}.batchStrip{display:flex;gap:8px;overflow-x:auto;padding:8px 14px;background:#081817}.batchThumb{position:relative;flex:0 0 74px;height:96px;border:2px solid transparent;border-radius:8px;overflow:hidden;background:#fff;padding:0}.batchThumb img{width:100%;height:100%;object-fit:cover}.batchThumb span{position:absolute;right:3px;bottom:3px;background:rgba(0,0,0,.68);color:#fff;border-radius:999px;padding:2px 5px;font-size:10px}.reviewTools{padding:10px 14px;background:#0b211f;border-top:1px solid rgba(255,255,255,.08)}.reviewTools label{color:#d9fffa;margin:0 0 6px}.modeChoice{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}.modeChoice button{border:1px solid #456a65;background:#163a36;color:#d9fffa;padding:9px 6px;border-radius:11px;font-size:13px}.modeChoice button.active{background:#0f766e;color:#fff;border-color:#2dd4bf}.watermarkRow{display:flex;align-items:center;gap:8px;color:#d9fffa;font-size:13px}.watermarkRow input{width:20px;height:20px}
 .scanMetrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px 12px;background:#0a1a19;color:#d9fffa;font-size:11px;text-align:center}
 .scanMetric{background:#112a27;border-radius:8px;padding:6px}
 .scanMetric b{display:block;font-size:13px;color:#7fffdc}
@@ -106,21 +106,27 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   <div class="scannerStage">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="overlay"></canvas>
-    <div class="scanGuide"></div>
+    <div class="scanGuide" id="scanGuide"></div><div id="batchBadge" class="batchBadge hidden">Batch • 0 pages</div>
     <div class="scannerHint"><span id="scanDot" class="scanDot"></span><span id="scanHint">Point camera at the document</span></div>
   </div>
-  <div id="scannerState" style="padding:8px 14px;background:#0b211f;color:#b9fff1;font-size:13px;text-align:center">Native scanner ready — hold a document in view.</div>
+  <div id="scannerState" style="padding:8px 14px;background:#0b211f;color:#b9fff1;font-size:13px;text-align:center">Place the document roughly inside the guide. FileNest will auto-capture when the corners are steady.</div>
   <div class="scanMetrics">
     <div class="scanMetric">Detector<b id="metricEngine">Native</b></div>
     <div class="scanMetric">Corners<b id="metricEdges">0</b></div>
-    <div class="scanMetric">Stable<b id="metricStable">0/6</b></div>
+    <div class="scanMetric">Stable<b id="metricStable">0/4</b></div>
   </div>
-  <div class="scannerControls"><button id="autoToggle" class="autoBtn">Auto: ON</button><button id="captureBtn" class="cameraBtn">● Capture</button></div>
+  <div class="scannerControls"><button id="autoToggle" class="autoBtn">Auto: ON</button><button id="batchToggle" class="batchBtn">Batch: OFF</button><button id="captureBtn" class="cameraBtn">● Capture</button><button id="finishBatch" class="finishBatchBtn hidden">Finish Batch</button></div>
 </div>
 
 <div id="scanReview" class="reviewOverlay hidden" aria-hidden="true">
   <div class="scannerTop"><strong>Review Scan</strong><span id="reviewQuality" class="small" style="color:#c8f7ef">Perspective corrected</span></div>
   <div class="reviewBody"><img id="reviewImage" alt="Scanned document preview"></div>
+  <div id="batchStrip" class="batchStrip hidden"></div>
+  <div class="reviewTools">
+    <label>Scan appearance</label>
+    <div class="modeChoice"><button type="button" id="modeOriginal">Original</button><button type="button" id="modeDocument" class="active">Document</button><button type="button" id="modeBW">B&amp;W</button></div>
+    <label class="watermarkRow"><input id="watermarkToggle" type="checkbox"> Add small FileNest logo watermark</label>
+  </div>
   <div class="reviewOptions">
     <label>Save scan as</label>
     <div class="formatChoice" role="group" aria-label="Scan output format">
@@ -228,6 +234,12 @@ let pendingScanURL=null;
 let pendingScanWidth=0;
 let pendingScanHeight=0;
 let scanOutputFormat='pdf';
+let batchMode=false;
+let batchPages=[];
+let activeReviewIndex=0;
+let enhancementMode='document';
+let watermarkEnabled=false;
+let batchPreparedFiles=null;
 function sanitize(v){return String(v||"").trim().replace(/[\\/:*?"<>|#%{}~&]/g," ").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")}
 function values(){const out={Year:new Date().getFullYear()}; document.querySelectorAll('[data-field]').forEach(el=>out[el.dataset.field]=el.value); return out}
 function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
@@ -243,12 +255,34 @@ function setRules(r){localStorage.setItem('fileNestRulesV3',JSON.stringify(r));r
 function remember(){if(!$('rememberRule').checked)return;const r=getRules();r[$('category').value]={folder:$('folderEdit').value.replace(/^\/+|\/+$/g,''),pattern:$('filenameEdit').value.replace(/\.[^.]+$/,'')};setRules(r)}
 function renderRules(){const r=getRules(),keys=Object.keys(r);$('rulesList').innerHTML=keys.length?'':'<div class="small">No saved rules yet.</div>';keys.forEach(k=>{let d=document.createElement('div');d.className='rule';d.innerHTML=`<strong>${k}</strong><span class="small">${r[k].folder}<br>${r[k].pattern}</span>`;$('rulesList').appendChild(d)})}
 function show(msg,ok=false){$('saveStatus').textContent=msg;$('saveStatus').classList.remove('hidden');$('saveStatus').classList.toggle('success',ok)}
-function renamedFile(){if(!selectedFile)return null;const filename=$('filenameEdit').value||generated.name;return new File([selectedFile],filename,{type:selectedFile.type||'application/octet-stream',lastModified:Date.now()})}
-async function sharePrepared(destination){if(!selectedFile){show('Scan or choose a document first.');return}remember();const f=renamedFile();const shareData={files:[f]};if(navigator.canShare?.(shareData)){try{await navigator.share(shareData);show(`Share Sheet opened. Choose ${destination}, then file it in ${$('folderEdit').value}.`,true)}catch(e){if(e.name!=='AbortError')show('Sharing was not available. Use Save to Files instead.')}}else{downloadFile();show(`Your browser cannot share files directly. The renamed copy was downloaded. Open it and share it to ${destination}.`)}}
-function downloadFile(){if(!selectedFile){show('Scan or choose a document first.');return}remember();const a=document.createElement('a');a.href=URL.createObjectURL(selectedFile);a.download=$('filenameEdit').value||generated.name;document.body.appendChild(a);a.click();a.remove()}
+function renamedFiles(){
+  if(!selectedFile)return [];
+  const filename=$('filenameEdit').value||generated.name;
+  if(batchPreparedFiles&&batchPreparedFiles.length>1&&selectedFile.type==='image/jpeg'){
+    const base=filename.replace(/\.[^.]+$/,'');
+    return batchPreparedFiles.map((f,i)=>new File([f],`${base}_p${String(i+1).padStart(2,'0')}.jpg`,{type:'image/jpeg',lastModified:Date.now()}));
+  }
+  return [new File([selectedFile],filename,{type:selectedFile.type||'application/octet-stream',lastModified:Date.now()})];
+}
+async function sharePrepared(destination){
+  if(!selectedFile){show('Scan or choose a document first.');return}
+  remember();
+  const files=renamedFiles();
+  const shareData={files};
+  if(navigator.canShare?.(shareData)){
+    try{await navigator.share(shareData);show(`Share Sheet opened. Choose ${destination}, then file it in ${$('folderEdit').value}.`,true)}
+    catch(e){if(e.name!=='AbortError')show('Sharing was not available. Use Save to Files instead.')}
+  }else{downloadFile();show('Your browser cannot share these files directly. The prepared file(s) were downloaded.')}
+}
+function downloadFile(){
+  if(!selectedFile){show('Scan or choose a document first.');return}
+  remember();
+  const files=renamedFiles();
+  files.forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);a.remove()},i*350));
+}
 $('protonBtn').onclick=()=>sharePrepared('Proton Drive');$('googleBtn').onclick=()=>sharePrepared('Google Drive');$('shareBtn').onclick=()=>sharePrepared('the app you want');$('saveBtn').onclick=()=>{downloadFile();if(selectedFile)show(`Renamed copy saved. Suggested folder: ${$('folderEdit').value}`,true)};
 
-$('resetBtn').onclick=()=>{selectedFile=null;$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.',true)};$('clearRules').onclick=()=>{localStorage.removeItem('fileNestRulesV3');renderRules();show('Saved rules cleared.',true)};$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
+$('resetBtn').onclick=()=>{selectedFile=null;batchPreparedFiles=null;batchPages.forEach(p=>{try{URL.revokeObjectURL(p.url)}catch(e){}});batchPages=[];batchMode=false;activeReviewIndex=0;$('batchToggle').classList.remove('active');$('batchToggle').textContent='Batch: OFF';$('finishBatch').classList.add('hidden');$('batchBadge').classList.add('hidden');$('fileInput').value='';$('thumb').style.display='none';$('fileInfo').textContent='No document selected.';$('notes').value='';$('rememberRule').checked=false;renderFields();show('Ready for another document.',true)};$('clearRules').onclick=()=>{localStorage.removeItem('fileNestRulesV3');renderRules();show('Saved rules cleared.',true)};$('folderEdit').addEventListener('input',()=>{$('folderPreview').textContent=$('folderEdit').value});$('filenameEdit').addEventListener('input',()=>{$('filenamePreview').textContent=$('filenameEdit').value});
 
 // Scanner — self-contained native JavaScript detector (no OpenCV)
 function cameraSupported(){return !!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)}
@@ -256,91 +290,67 @@ function cameraSupported(){return !!(navigator.mediaDevices&&navigator.mediaDevi
 $('openScannerBtn').onclick=startScanner;
 $('closeScanner').onclick=stopScanner;
 $('captureBtn').onclick=()=>captureScan(lastQuad);
-$('autoToggle').onclick=()=>{
-  autoCapture=!autoCapture;
-  $('autoToggle').textContent=`Auto: ${autoCapture?'ON':'OFF'}`;
+$('autoToggle').onclick=()=>{autoCapture=!autoCapture;$('autoToggle').textContent=`Auto: ${autoCapture?'ON':'OFF'}`};
+$('batchToggle').onclick=()=>{
+  batchMode=!batchMode;
+  $('batchToggle').classList.toggle('active',batchMode);
+  $('batchToggle').textContent=`Batch: ${batchMode?'ON':'OFF'}`;
+  $('finishBatch').classList.toggle('hidden',!batchMode);
+  $('batchBadge').classList.toggle('hidden',!batchMode);
+  updateBatchBadge();
 };
+$('finishBatch').onclick=()=>{if(!batchPages.length){setHint('Batch is empty — scan at least one page','');return}stopScanner();activeReviewIndex=0;showBatchReview()};
 $('formatPdf').onclick=()=>setScanFormat('pdf');
 $('formatJpeg').onclick=()=>setScanFormat('jpeg');
+$('modeOriginal').onclick=()=>setEnhancementMode('original');
+$('modeDocument').onclick=()=>setEnhancementMode('document');
+$('modeBW').onclick=()=>setEnhancementMode('bw');
+$('watermarkToggle').onchange=()=>{watermarkEnabled=$('watermarkToggle').checked;refreshReviewPreview()};
 $('retakeScan').onclick=()=>{
-  hideReview();
-  startScanner();
+  if(batchPages.length){const old=batchPages.splice(activeReviewIndex,1)[0];try{URL.revokeObjectURL(old.url)}catch(e){};activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1))}
+  hideReview();startScanner();
 };
 $('useScan').onclick=async()=>{
-  if(!pendingScanBlob)return;
+  if(!batchPages.length&&!pendingScanBlob)return;
   try{
-    $('useScan').disabled=true;
-    $('useScan').textContent='Preparing…';
-
-    let file,formatLabel;
+    $('useScan').disabled=true;$('useScan').textContent='Preparing…';
+    const pages=batchPages.length?batchPages:[{blob:pendingScanBlob,width:pendingScanWidth,height:pendingScanHeight,url:pendingScanURL}];
+    const processed=[];
+    for(let i=0;i<pages.length;i++){ $('reviewQuality').textContent=`Preparing page ${i+1} of ${pages.length}…`; processed.push(await renderFinalPage(pages[i],enhancementMode,watermarkEnabled)); }
+    let file,formatLabel;batchPreparedFiles=null;
     if(scanOutputFormat==='pdf'){
-      $('reviewQuality').textContent='Creating PDF…';
-      const pdfBlob=await jpegBlobToPdfBlob(pendingScanBlob,pendingScanWidth,pendingScanHeight);
-      if(!pdfBlob || !pdfBlob.size) throw new Error('PDF creation returned an empty file');
-
-      file=new File(
-        [pdfBlob],
-        `Scan_${today}.pdf`,
-        {type:'application/pdf',lastModified:Date.now()}
-      );
-
-      if(!file.size) throw new Error('PDF file was empty');
-
-      formatLabel='PDF';
-      selectFile(file,'Scanned document • PDF');
-      $('reviewQuality').textContent='PDF prepared';
+      const pdfBlob=await jpegPagesToPdfBlob(processed);if(!pdfBlob?.size)throw new Error('PDF was empty');
+      file=new File([pdfBlob],`Scan_${today}.pdf`,{type:'application/pdf',lastModified:Date.now()});
+      batchPreparedFiles=[file];formatLabel=processed.length>1?`PDF • ${processed.length} pages`:'PDF';selectFile(file,`Scanned document • ${formatLabel}`);
     }else{
-      file=new File([pendingScanBlob],`Scan_${today}.jpg`,{type:'image/jpeg',lastModified:Date.now()});
-      formatLabel='JPEG';
-      selectFile(file,'Scanned document • JPEG');
+      batchPreparedFiles=processed.map((p,i)=>new File([p.blob],processed.length>1?`Scan_${today}_p${String(i+1).padStart(2,'0')}.jpg`:`Scan_${today}.jpg`,{type:'image/jpeg',lastModified:Date.now()}));
+      file=batchPreparedFiles[0];formatLabel=processed.length>1?`JPEG batch • ${processed.length} images`:'JPEG';selectFile(file,`Scanned document • ${formatLabel}`);
     }
-
-    // Keep the corrected scan image visible even when the active file is a PDF.
-    if(pendingScanURL){
-      $('thumb').src=pendingScanURL;
-      $('thumb').style.display='inline-block';
-    }
-
-    const kb=(file.size/1024).toFixed(1);
-    $('fileInfo').textContent=`✓ ${formatLabel} scan ready to file • ${kb} KB`;
-
-    // Visible confirmation near Step 1.
-    $('scannerAvailability').textContent=
-      `${formatLabel} scan prepared successfully. Continue below to classify, name, and save it.`;
-    $('scannerAvailability').classList.remove('hidden');
-    $('scannerAvailability').classList.add('success');
-
-    hideReview();
-
-    // Move directly into Step 2 instead of making the scan appear to vanish.
-    const cards=document.querySelectorAll('.card');
-    if(cards[1]){
-      setTimeout(()=>cards[1].scrollIntoView({behavior:'smooth',block:'start'}),80);
-    }
-  }catch(e){
-    console.error('Could not prepare scan output',e);
-    $('reviewQuality').textContent='PDF error: ' + (e && e.message ? e.message : 'unknown error');
-    $('scannerAvailability').textContent='The PDF could not be prepared. The scan is still here; choose JPEG or try PDF again.';
-    $('scannerAvailability').classList.remove('hidden');
-  }finally{
-    $('useScan').disabled=false;
-    $('useScan').textContent='✓ Use Scan & Continue';
-  }
+    const preview=processed[Math.min(activeReviewIndex,processed.length-1)];if(preview?.url){$('thumb').src=preview.url;$('thumb').style.display='inline-block'}
+    const totalKB=(batchPreparedFiles||[file]).reduce((s,f)=>s+f.size,0)/1024;
+    $('fileInfo').textContent=`✓ ${formatLabel} ready to file • ${totalKB.toFixed(1)} KB`;
+    $('scannerAvailability').textContent=`${formatLabel} prepared successfully. Continue below to classify, name, and save it.`;$('scannerAvailability').classList.remove('hidden');$('scannerAvailability').classList.add('success');
+    hideReview();const cards=document.querySelectorAll('.card');if(cards[1])setTimeout(()=>cards[1].scrollIntoView({behavior:'smooth',block:'start'}),80);
+  }catch(e){console.error(e);$('reviewQuality').textContent='Output error: '+(e?.message||'unknown error')}
+  finally{$('useScan').disabled=false;$('useScan').textContent='✓ Use Scan & Continue'}
 };
-
 function setScanFormat(format){
-  scanOutputFormat=format;
-  $('formatPdf').classList.toggle('active',format==='pdf');
-  $('formatJpeg').classList.toggle('active',format==='jpeg');
-  $('formatHelp').textContent=format==='pdf'
-    ? 'PDF is recommended for records and official documents.'
-    : 'JPEG is useful for websites that require a photo/image upload.';
+  scanOutputFormat=format;$('formatPdf').classList.toggle('active',format==='pdf');$('formatJpeg').classList.toggle('active',format==='jpeg');
+  $('formatHelp').textContent=format==='pdf'?'PDF combines all batch pages into one document.':'JPEG exports each batch page as a separate image.';
 }
+function setEnhancementMode(mode){
+  enhancementMode=mode;$('modeOriginal').classList.toggle('active',mode==='original');$('modeDocument').classList.toggle('active',mode==='document');$('modeBW').classList.toggle('active',mode==='bw');refreshReviewPreview();
+}
+function updateBatchBadge(){if($('batchBadge'))$('batchBadge').textContent=`Batch • ${batchPages.length} page${batchPages.length===1?'':'s'}`}
+function updateGuide(state){const g=$('scanGuide');if(!g)return;g.classList.toggle('detected',state==='detected');g.classList.toggle('locked',state==='locked')}
+function smoothQuad(prev,current,alpha=.62){if(!prev)return current.map(p=>({...p}));return current.map((p,i)=>({x:prev[i].x*(1-alpha)+p.x*alpha,y:prev[i].y*(1-alpha)+p.y*alpha}))}
+function showBatchReview(){if(!batchPages.length)return;activeReviewIndex=Math.max(0,Math.min(activeReviewIndex,batchPages.length-1));$('reviewImage').src=batchPages[activeReviewIndex].url;$('reviewQuality').textContent=`Page ${activeReviewIndex+1} of ${batchPages.length}`;renderBatchStrip();$('scanReview').classList.remove('hidden');$('scanReview').setAttribute('aria-hidden','false');refreshReviewPreview()}
+function renderBatchStrip(){const strip=$('batchStrip');strip.innerHTML='';strip.classList.toggle('hidden',batchPages.length<=1);batchPages.forEach((p,i)=>{const b=document.createElement('button');b.type='button';b.className='batchThumb';b.style.borderColor=i===activeReviewIndex?'#2dd4bf':'transparent';b.innerHTML=`<img src="${p.url}" alt="Page ${i+1}"><span>${i+1}</span>`;b.onclick=()=>{activeReviewIndex=i;$('reviewImage').src=p.url;$('reviewQuality').textContent=`Page ${i+1} of ${batchPages.length}`;renderBatchStrip();refreshReviewPreview()};strip.appendChild(b)})}
 
 function updateMetrics(corners,stable){
   if($('metricEngine')) $('metricEngine').textContent='Native';
   if(corners!==undefined && $('metricEdges')) $('metricEdges').textContent=String(corners);
-  if(stable!==undefined && $('metricStable')) $('metricStable').textContent=`${stable}/6`;
+  if(stable!==undefined && $('metricStable')) $('metricStable').textContent=`${stable}/4`;
 }
 function setHint(text,state){
   $('scanHint').textContent=text;
@@ -375,7 +385,7 @@ async function startScanner(){
     await $('video').play();
     stableFrames=0;
     lastQuad=null;
-    setHint('Looking for all four document corners…','');
+    setHint('Place the document roughly inside the guide','');
     scheduleScan();
   }catch(e){
     console.error(e);
@@ -439,50 +449,18 @@ async function processFrame(){
   if(frameProcessing||captureProcessing||!stream||!$('video').videoWidth)return;
   frameProcessing=true;
   try{
-    const video=$('video');
-    const work=$('workCanvas');
-    const W=400;
-    const H=Math.round(W*video.videoHeight/video.videoWidth);
-    work.width=W;work.height=H;
-    const ctx=work.getContext('2d',{willReadFrequently:true});
-    ctx.drawImage(video,0,0,W,H);
-    const img=ctx.getImageData(0,0,W,H);
-    const result=detectDocument(img,W,H);
-
-    if(result && result.quad){
-      const q=result.quad;
-      drawQuad(q,W,H);
-      const movement=quadMovement(lastQuad,q);
-      lastQuad=q;
-      if(result.score>.56 && movement<9){
-        stableFrames=Math.min(6,stableFrames+1);
-        updateMetrics(4,stableFrames);
-        setHint(stableFrames>=6?'Locked — auto capturing…':`Document found — hold still ${stableFrames}/6`,'ready');
-        if(stableFrames>=6 && autoCapture){
-          const captureQ=q.map(p=>({x:p.x,y:p.y}));
-          stableFrames=0;
-          updateMetrics(4,0);
-          setTimeout(()=>captureScan(captureQ,W,H),30);
-        }
-      }else{
-        stableFrames=Math.max(0,stableFrames-1);
-        updateMetrics(4,stableFrames);
-        setHint(result.score>.48?'Document found — hold still':'Document found — adjust angle','ready');
-      }
-    }else{
-      lastQuad=null;
-      stableFrames=0;
-      updateMetrics(0,0);
-      setHint('Looking for all four document corners…','');
-      drawGuideOnly();
-    }
-  }catch(e){
-    console.error('Native detector error',e);
-    updateMetrics(0,0);
-    setHint('Detector error — tap Capture for manual scan','');
-  }finally{
-    frameProcessing=false;
-  }
+    const video=$('video'),work=$('workCanvas'),W=400,H=Math.round(W*video.videoHeight/video.videoWidth);
+    work.width=W;work.height=H;const ctx=work.getContext('2d',{willReadFrequently:true});ctx.drawImage(video,0,0,W,H);
+    const result=detectDocument(ctx.getImageData(0,0,W,H),W,H);
+    if(result?.quad){
+      const smoothed=smoothQuad(lastQuad,result.quad,.62);const movement=quadMovement(lastQuad,smoothed);lastQuad=smoothed;drawQuad(smoothed,W,H);updateGuide('detected');
+      if(result.score>.50&&movement<18){
+        stableFrames=Math.min(4,stableFrames+1);updateMetrics(4,stableFrames);setHint(stableFrames>=4?'Locked — capturing…':`Document found — hold still ${stableFrames}/4`,'ready');
+        if(stableFrames>=4&&autoCapture){updateGuide('locked');const captureQ=smoothed.map(p=>({...p}));stableFrames=0;updateMetrics(4,0);setTimeout(()=>captureScan(captureQ,W,H),30)}
+      }else{stableFrames=Math.max(0,stableFrames-1);updateMetrics(4,stableFrames);setHint(result.score>.42?'Document found — steady the phone':'Move page closer to guide','ready')}
+    }else{lastQuad=null;stableFrames=0;updateMetrics(0,0);updateGuide('');setHint('Place the document roughly inside the guide','');drawGuideOnly()}
+  }catch(e){console.error('Native detector error',e);updateMetrics(0,0);setHint('Detector error — tap Capture for manual scan','')}
+  finally{frameProcessing=false}
 }
 
 function detectDocument(imageData,W,H){
@@ -633,146 +611,39 @@ function quadMovement(a,b){
 }
 
 async function captureScan(quad,analysisW,analysisH){
-  if(captureProcessing||!stream)return;
-  captureProcessing=true;
+  if(captureProcessing||!stream)return;captureProcessing=true;
   try{
-    setHint('Capturing…','captured');
-    const video=$('video');
-    const full=document.createElement('canvas');
-    full.width=video.videoWidth;
-    full.height=video.videoHeight;
-    full.getContext('2d').drawImage(video,0,0);
-
+    setHint('Capturing…','captured');const video=$('video'),full=document.createElement('canvas');full.width=video.videoWidth;full.height=video.videoHeight;full.getContext('2d').drawImage(video,0,0);
     let output=full;
-    if(quad){
-      const aw=analysisW||$('workCanvas').width||400;
-      const ah=analysisH||$('workCanvas').height||Math.round(aw*video.videoHeight/video.videoWidth);
-      const sx=video.videoWidth/aw, sy=video.videoHeight/ah;
-      const fullQ=quad.map(p=>({x:p.x*sx,y:p.y*sy}));
-      output=warpPerspectiveNative(full,fullQ);
-    }
+    if(quad){const aw=analysisW||$('workCanvas').width||400,ah=analysisH||$('workCanvas').height||Math.round(aw*video.videoHeight/video.videoWidth),sx=video.videoWidth/aw,sy=video.videoHeight/ah;let fullQ=quad.map(p=>({x:p.x*sx,y:p.y*sy}));fullQ=insetQuad(fullQ,.008);output=warpPerspectiveNative(full,fullQ)}
+    const rawBlob=await new Promise(res=>output.toBlob(res,'image/jpeg',.95));const page={blob:rawBlob,width:output.width,height:output.height,url:URL.createObjectURL(rawBlob)};
+    pendingScanBlob=rawBlob;pendingScanWidth=output.width;pendingScanHeight=output.height;pendingScanURL=page.url;
+    if(batchMode){batchPages.push(page);updateBatchBadge();stableFrames=0;lastQuad=null;updateMetrics(0,0);updateGuide('');setHint(`✓ Page ${batchPages.length} captured — ready for next page`,'captured');setTimeout(()=>setHint('Place next page inside the guide',''),650)}
+    else{batchPages=[page];activeReviewIndex=0;setScanFormat('pdf');stopScanner();showBatchReview()}
+  }catch(e){console.error(e);setHint('Capture failed — try again','')}finally{captureProcessing=false}
+}
+function insetQuad(q,amount){const cx=q.reduce((s,p)=>s+p.x,0)/4,cy=q.reduce((s,p)=>s+p.y,0)/4;return q.map(p=>({x:p.x+(cx-p.x)*amount,y:p.y+(cy-p.y)*amount}))}
 
-    pendingScanBlob=await new Promise(res=>output.toBlob(res,'image/jpeg',.94));
-    pendingScanWidth=output.width;
-    pendingScanHeight=output.height;
-    setScanFormat('pdf');
-    if(pendingScanURL)URL.revokeObjectURL(pendingScanURL);
-    pendingScanURL=URL.createObjectURL(pendingScanBlob);
-    $('reviewImage').src=pendingScanURL;
-    $('reviewQuality').textContent=quad?'Perspective corrected':'Manual full-frame capture';
-    stopScanner();
-    $('scanReview').classList.remove('hidden');
-    $('scanReview').setAttribute('aria-hidden','false');
-  }catch(e){
-    console.error(e);
-    setHint('Capture failed — try again','');
-  }finally{
-    captureProcessing=false;
-  }
+
+async function jpegPagesToPdfBlob(pages){
+  if(!pages?.length)throw new Error('No pages available for PDF');
+  const encoder=new TextEncoder(),chunks=[],offsets=[0];let total=0;
+  const pushBytes=bytes=>{chunks.push(bytes);total+=bytes.length},pushText=t=>pushBytes(encoder.encode(t)),beginObj=n=>{offsets[n]=total;pushText(`${n} 0 obj\n`)},endObj=()=>pushText('\nendobj\n');
+  const pageCount=pages.length,size=3+pageCount*3,pageNums=[];pushText('%PDF-1.4\n');beginObj(1);pushText('<< /Type /Catalog /Pages 2 0 R >>');endObj();for(let i=0;i<pageCount;i++)pageNums.push(3+i*3);beginObj(2);pushText(`<< /Type /Pages /Kids [${pageNums.map(n=>`${n} 0 R`).join(' ')}] /Count ${pageCount} >>`);endObj();
+  for(let i=0;i<pageCount;i++){const p=pages[i],jpeg=new Uint8Array(await p.blob.arrayBuffer()),pageObj=3+i*3,imageObj=pageObj+1,contentObj=pageObj+2,portrait=p.height>=p.width,pageW=portrait?612:792,pageH=portrait?792:612,margin=18,scale=Math.min((pageW-margin*2)/p.width,(pageH-margin*2)/p.height),drawW=p.width*scale,drawH=p.height*scale,x=(pageW-drawW)/2,y=(pageH-drawH)/2;beginObj(pageObj);pushText(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im${i} ${imageObj} 0 R >> >> /Contents ${contentObj} 0 R >>`);endObj();beginObj(imageObj);pushText(`<< /Type /XObject /Subtype /Image /Width ${p.width} /Height ${p.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`);pushBytes(jpeg);pushText('\nendstream');endObj();const content=`q\n${drawW.toFixed(3)} 0 0 ${drawH.toFixed(3)} ${x.toFixed(3)} ${y.toFixed(3)} cm\n/Im${i} Do\nQ\n`,cb=encoder.encode(content);beginObj(contentObj);pushText(`<< /Length ${cb.length} >>\nstream\n`);pushBytes(cb);pushText('endstream');endObj()}
+  const xrefOffset=total;pushText(`xref\n0 ${size}\n`);pushText('0000000000 65535 f \n');for(let i=1;i<size;i++)pushText(String(offsets[i]||0).padStart(10,'0')+' 00000 n \n');pushText(`trailer\n<< /Size ${size} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);const bytes=new Uint8Array(total);let pos=0;for(const ch of chunks){bytes.set(ch,pos);pos+=ch.length}return new Blob([bytes.buffer],{type:'application/pdf'})
 }
 
-async function jpegBlobToPdfBlob(jpegBlob,imgW,imgH){
-  if(!jpegBlob || !imgW || !imgH) throw new Error('Missing scan image or dimensions');
-
-  const jpeg = new Uint8Array(await jpegBlob.arrayBuffer());
-
-  // Standard US Letter points. Rotate the page for landscape scans.
-  const portrait = imgH >= imgW;
-  const pageW = portrait ? 612 : 792;
-  const pageH = portrait ? 792 : 612;
-  const margin = 18;
-  const scale = Math.min((pageW-margin*2)/imgW, (pageH-margin*2)/imgH);
-  const drawW = imgW*scale;
-  const drawH = imgH*scale;
-  const x = (pageW-drawW)/2;
-  const y = (pageH-drawH)/2;
-
-  const encoder = new TextEncoder();
-  const chunks = [];
-  const offsets = new Array(6).fill(0);
-  let total = 0;
-
-  function pushBytes(bytes){
-    chunks.push(bytes);
-    total += bytes.length;
-  }
-  function pushText(text){
-    pushBytes(encoder.encode(text));
-  }
-  function beginObj(n){
-    offsets[n] = total;
-    pushText(n + ' 0 obj\n');
-  }
-  function endObj(){
-    pushText('\nendobj\n');
-  }
-
-  pushText('%PDF-1.4\n');
-
-  beginObj(1);
-  pushText('<< /Type /Catalog /Pages 2 0 R >>');
-  endObj();
-
-  beginObj(2);
-  pushText('<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
-  endObj();
-
-  beginObj(3);
-  pushText(
-    '<< /Type /Page /Parent 2 0 R ' +
-    '/MediaBox [0 0 ' + pageW + ' ' + pageH + '] ' +
-    '/Resources << /XObject << /Im0 4 0 R >> >> ' +
-    '/Contents 5 0 R >>'
-  );
-  endObj();
-
-  beginObj(4);
-  pushText(
-    '<< /Type /XObject /Subtype /Image ' +
-    '/Width ' + imgW + ' /Height ' + imgH + ' ' +
-    '/ColorSpace /DeviceRGB /BitsPerComponent 8 ' +
-    '/Filter /DCTDecode /Length ' + jpeg.length + ' >>\nstream\n'
-  );
-  pushBytes(jpeg);
-  pushText('\nendstream');
-  endObj();
-
-  const content =
-    'q\n' +
-    drawW.toFixed(3) + ' 0 0 ' + drawH.toFixed(3) + ' ' +
-    x.toFixed(3) + ' ' + y.toFixed(3) + ' cm\n' +
-    '/Im0 Do\nQ\n';
-  const contentBytes = encoder.encode(content);
-
-  beginObj(5);
-  pushText('<< /Length ' + contentBytes.length + ' >>\nstream\n');
-  pushBytes(contentBytes);
-  pushText('endstream');
-  endObj();
-
-  const xrefOffset = total;
-  pushText('xref\n0 6\n');
-  pushText('0000000000 65535 f \n');
-  for(let i=1;i<=5;i++){
-    pushText(String(offsets[i]).padStart(10,'0') + ' 00000 n \n');
-  }
-  pushText(
-    'trailer\n<< /Size 6 /Root 1 0 R >>\n' +
-    'startxref\n' + xrefOffset + '\n%%EOF\n'
-  );
-
-  // Safari is more reliable when the PDF is built as one contiguous buffer.
-  const pdfBytes = new Uint8Array(total);
-  let pos = 0;
-  for(const chunk of chunks){
-    pdfBytes.set(chunk, pos);
-    pos += chunk.length;
-  }
-
-  const blob = new Blob([pdfBytes.buffer], {type:'application/pdf'});
-  if(!blob.size) throw new Error('Generated PDF was empty');
-  return blob;
+async function refreshReviewPreview(){
+  if(!batchPages.length)return;try{const p=await renderFinalPage(batchPages[activeReviewIndex],enhancementMode,watermarkEnabled);$('reviewImage').src=p.url}catch(e){console.error(e)}
 }
+async function renderFinalPage(page,mode,watermark){
+  const img=await blobToImage(page.blob),c=document.createElement('canvas');c.width=page.width;c.height=page.height;const ctx=c.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,c.width,c.height);
+  if(mode!=='original'){const im=ctx.getImageData(0,0,c.width,c.height),d=im.data;if(mode==='document'){let sum=0,count=0,step=Math.max(4,Math.floor(Math.sqrt(c.width*c.height/50000)));for(let y=0;y<c.height;y+=step)for(let x=0;x<c.width;x+=step){const i=(y*c.width+x)*4;sum+=(d[i]+d[i+1]+d[i+2])/3;count++}const avg=count?sum/count:200,lift=Math.max(0,232-avg)*.55;for(let i=0;i<d.length;i+=4)for(let k=0;k<3;k++){let v=(d[i+k]-128)*1.10+128+lift;if(v>238)v=238+(v-238)*.32;d[i+k]=Math.max(0,Math.min(255,v))}}else{for(let i=0;i<d.length;i+=4){const g=.299*d[i]+.587*d[i+1]+.114*d[i+2],v=g>205?255:(g<115?0:Math.round((g-115)/90*255));d[i]=d[i+1]=d[i+2]=v}}ctx.putImageData(im,0,0)}
+  if(watermark)await drawWatermark(ctx,c.width,c.height);const blob=await new Promise(res=>c.toBlob(res,'image/jpeg',.94));return {blob,width:c.width,height:c.height,url:URL.createObjectURL(blob)}
+}
+function blobToImage(blob){return new Promise((resolve,reject)=>{const img=new Image(),u=URL.createObjectURL(blob);img.onload=()=>{URL.revokeObjectURL(u);resolve(img)};img.onerror=reject;img.src=u})}
+function drawWatermark(ctx,W,H){return new Promise(resolve=>{const logo=new Image();logo.onload=()=>{const size=Math.max(34,Math.min(W,H)*.065),pad=Math.max(10,size*.25);ctx.save();ctx.globalAlpha=.22;ctx.drawImage(logo,W-size-pad,H-size-pad,size,size);ctx.restore();resolve()};logo.onerror=()=>resolve();logo.src='./filenest-icon-1024.png'})}
 
 
 function hideReview(){
