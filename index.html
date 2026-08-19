@@ -23,7 +23,20 @@ label{display:block;font-weight:700;margin:14px 0 6px} input,select,textarea,but
 button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:800;cursor:pointer;text-align:center;display:inline-flex;align-items:center;justify-content:center;gap:8px}.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}.secondary{background:#e9f2f1;color:#174d49}.danger{background:#feeceb;color:var(--danger)}.blue{background:var(--blue);color:#fff}.purple{background:var(--purple);color:#fff}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.actions>*{flex:1 1 180px}
 .preview{background:#102f2d;color:#eafffb;border-radius:16px;padding:16px;overflow-wrap:anywhere}.preview .folder{color:#9be6db}.preview .name{font-weight:800;font-size:18px;margin-top:8px}.status{padding:10px 12px;border-radius:12px;background:#fff6d8;color:var(--warn);margin-top:12px}.success{background:#e8faf4;color:#176b52}.hidden{display:none!important}.rule{border-top:1px solid var(--line);padding:12px 0}.rule:first-child{border-top:0}.rule strong{display:block}.footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}.toggle{display:flex;gap:8px;align-items:center;margin-top:10px}.toggle input{width:20px;height:20px}.destination{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fafdfd}.destination h3{margin:0 0 5px;font-size:16px}.destination p{margin:0;color:var(--muted);font-size:13px}
 /* scanner */
-.scanner{position:fixed;inset:0;background:#071413;z-index:99;color:white;display:flex;flex-direction:column}.scannerTop{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}.scannerTop strong{font-size:17px}.scannerStage{position:relative;flex:1;min-height:0;overflow:hidden;background:#000}.scanner video,.scanner canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scanner canvas{pointer-events:none}.scanGuide{position:absolute;left:8%;right:8%;top:15%;bottom:15%;border:2px dashed rgba(255,255,255,.55);border-radius:10px;pointer-events:none;transition:.18s ease}.scanGuide.detected{opacity:.16;transform:scale(.985)}.scanGuide.locked{opacity:0}.scannerHint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.65);padding:8px 12px;border-radius:999px;font-size:13px;white-space:nowrap}.scannerControls{padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;background:#071413}.scannerControls button{flex:1}.scanDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:7px}.scanDot.ready{background:#22c55e}.scanDot.captured{background:#60a5fa}.cameraBtn{background:white;color:#123}.closeBtn{background:#223c39;color:#fff}.autoBtn{background:#0f766e;color:#fff}.batchBtn{background:#374151;color:#fff}.batchBtn.active{background:#7c3aed}.finishBatchBtn{background:#f59e0b;color:#1f2937}.batchBadge{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.68);color:#fff;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800}.batchStrip{display:flex;gap:8px;overflow-x:auto;padding:8px 14px;background:#081817}.batchThumb{position:relative;flex:0 0 74px;height:96px;border:2px solid transparent;border-radius:8px;overflow:hidden;background:#fff;padding:0}.batchThumb img{width:100%;height:100%;object-fit:cover}.batchThumb span{position:absolute;right:3px;bottom:3px;background:rgba(0,0,0,.68);color:#fff;border-radius:999px;padding:2px 5px;font-size:10px}.reviewTools{padding:10px 14px;background:#0b211f;border-top:1px solid rgba(255,255,255,.08)}.reviewTools label{color:#d9fffa;margin:0 0 6px}.modeChoice{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}.modeChoice button{border:1px solid #456a65;background:#163a36;color:#d9fffa;padding:9px 6px;border-radius:11px;font-size:13px}.modeChoice button.active{background:#0f766e;color:#fff;border-color:#2dd4bf}.watermarkRow{display:flex;align-items:center;gap:8px;color:#d9fffa;font-size:13px}.watermarkRow input{width:20px;height:20px}
+.scanner{position:fixed;inset:0;background:#071413;z-index:99;color:white;display:flex;flex-direction:column}
+.freezeEditor{position:fixed;inset:0;background:#071413;z-index:115;color:#fff;display:flex;flex-direction:column}
+.freezeStage{position:relative;flex:1;min-height:0;background:#000;overflow:hidden}
+.freezeStage img,.freezeStage canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.freezeStage canvas{touch-action:none}
+.freezeTop{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}
+.freezeBottom{padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:#071413}
+.freezeActions{display:flex;gap:10px}.freezeActions button{flex:1}
+.scanLine{position:absolute;left:5%;right:5%;height:2px;background:linear-gradient(90deg,transparent,#7fffdc,transparent);box-shadow:0 0 12px #7fffdc;top:8%;opacity:0}
+.scanLine.active{opacity:1;animation:scanSweep 1.05s linear 1}
+@keyframes scanSweep{from{top:8%}to{top:92%}}
+.cornerHandle{position:absolute;width:28px;height:28px;border-radius:50%;background:#7fffdc;border:3px solid #063b34;box-shadow:0 0 0 2px rgba(255,255,255,.72);transform:translate(-50%,-50%);touch-action:none}
+.freezeHint{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(0,0,0,.68);padding:8px 12px;border-radius:999px;font-size:13px;white-space:nowrap}
+.scannerTop{display:flex;justify-content:space-between;align-items:center;padding:calc(12px + env(safe-area-inset-top)) 14px 10px}.scannerTop strong{font-size:17px}.scannerStage{position:relative;flex:1;min-height:0;overflow:hidden;background:#000}.scanner video,.scanner canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.scanner canvas{pointer-events:none}.scanGuide{position:absolute;left:8%;right:8%;top:15%;bottom:15%;border:2px dashed rgba(255,255,255,.55);border-radius:10px;pointer-events:none;transition:.18s ease}.scanGuide.detected{opacity:.16;transform:scale(.985)}.scanGuide.locked{opacity:0}.scannerHint{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(0,0,0,.65);padding:8px 12px;border-radius:999px;font-size:13px;white-space:nowrap}.scannerControls{padding:12px 14px calc(12px + env(safe-area-inset-bottom));display:flex;gap:10px;background:#071413}.scannerControls button{flex:1}.scanDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#f59e0b;margin-right:7px}.scanDot.ready{background:#22c55e}.scanDot.captured{background:#60a5fa}.cameraBtn{background:white;color:#123}.closeBtn{background:#223c39;color:#fff}.autoBtn{background:#0f766e;color:#fff}.batchBtn{background:#374151;color:#fff}.batchBtn.active{background:#7c3aed}.finishBatchBtn{background:#f59e0b;color:#1f2937}.batchBadge{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.68);color:#fff;padding:7px 10px;border-radius:999px;font-size:12px;font-weight:800}.batchStrip{display:flex;gap:8px;overflow-x:auto;padding:8px 14px;background:#081817}.batchThumb{position:relative;flex:0 0 74px;height:96px;border:2px solid transparent;border-radius:8px;overflow:hidden;background:#fff;padding:0}.batchThumb img{width:100%;height:100%;object-fit:cover}.batchThumb span{position:absolute;right:3px;bottom:3px;background:rgba(0,0,0,.68);color:#fff;border-radius:999px;padding:2px 5px;font-size:10px}.reviewTools{padding:10px 14px;background:#0b211f;border-top:1px solid rgba(255,255,255,.08)}.reviewTools label{color:#d9fffa;margin:0 0 6px}.modeChoice{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}.modeChoice button{border:1px solid #456a65;background:#163a36;color:#d9fffa;padding:9px 6px;border-radius:11px;font-size:13px}.modeChoice button.active{background:#0f766e;color:#fff;border-color:#2dd4bf}.watermarkRow{display:flex;align-items:center;gap:8px;color:#d9fffa;font-size:13px}.watermarkRow input{width:20px;height:20px}
 .scanMetrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:8px 12px;background:#0a1a19;color:#d9fffa;font-size:11px;text-align:center}
 .scanMetric{background:#112a27;border-radius:8px;padding:6px}
 .scanMetric b{display:block;font-size:13px;color:#7fffdc}
@@ -121,6 +134,30 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   <div class="scannerControls"><button id="autoToggle" class="autoBtn">Auto: ON</button><button id="batchToggle" class="batchBtn">Batch: OFF</button><button id="captureBtn" class="cameraBtn">● Capture</button><button id="finishBatch" class="finishBatchBtn hidden">Finish Batch</button></div>
 </div>
 
+
+<div id="freezeEditor" class="freezeEditor hidden" aria-hidden="true">
+  <div class="freezeTop">
+    <strong>Adjust Document Corners</strong>
+    <button id="freezeCancel" class="closeBtn">Retake</button>
+  </div>
+  <div class="freezeStage" id="freezeStage">
+    <img id="freezeImage" alt="Captured document">
+    <canvas id="freezeCanvas"></canvas>
+    <div id="scanLine" class="scanLine"></div>
+    <div id="corner0" class="cornerHandle"></div>
+    <div id="corner1" class="cornerHandle"></div>
+    <div id="corner2" class="cornerHandle"></div>
+    <div id="corner3" class="cornerHandle"></div>
+    <div id="freezeHint" class="freezeHint">Drag corners if needed, then use this page</div>
+  </div>
+  <div class="freezeBottom">
+    <div class="freezeActions">
+      <button id="freezeAuto" class="secondary">↻ Re-detect</button>
+      <button id="freezeUse" class="cameraBtn">✓ Use This Page</button>
+    </div>
+  </div>
+</div>
+
 <div id="scanReview" class="reviewOverlay hidden" aria-hidden="true">
   <div class="scannerTop"><strong>Review Scan</strong><span id="reviewQuality" class="small" style="color:#c8f7ef">Perspective corrected</span></div>
   <div class="reviewBody"><img id="reviewImage" alt="Scanned document preview"></div>
@@ -128,7 +165,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   <div class="reviewTools">
     <label>Scan appearance</label>
     <div class="modeChoice"><button type="button" id="modeOriginal">Original</button><button type="button" id="modeDocument" class="active">Document</button><button type="button" id="modeBW">B&amp;W</button></div>
-    <label class="watermarkRow"><input id="watermarkToggle" type="checkbox"> Add small FileNest logo watermark</label>
+    <label class="watermarkRow"><input id="watermarkToggle" type="checkbox" checked> Add small FileNest logo watermark</label>
   </div>
   <div class="reviewOptions">
     <label>Save scan as</label>
@@ -140,6 +177,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   </div>
   <div class="reviewActions">
     <button id="retakeScan" class="closeBtn">↶ Retake</button>
+    <button id="nextBatchPage" class="autoBtn hidden">＋ Next Page</button>
     <button id="useScan" class="cameraBtn">✓ Use Scan & Continue</button>
   </div>
 </div>
@@ -241,8 +279,18 @@ let batchMode=false;
 let batchPages=[];
 let activeReviewIndex=0;
 let enhancementMode='document';
-let watermarkEnabled=false;
+let watermarkEnabled=true;
 let batchPreparedFiles=null;
+let v4FrozenBlob=null;
+let v4FrozenURL=null;
+let v4FrozenW=0;
+let v4FrozenH=0;
+let v4Quad=null;
+let v4Map={x:1,y:1,ox:0,oy:0};
+let v4Drag=-1;
+let v4MotionPrev=null;
+let v4SteadySince=0;
+
 let lockStartedAt=0;
 let lockConfidence=0;
 let lastGoodDetectionAt=0;
@@ -960,6 +1008,373 @@ function computeHomography(src,dst){
   }
   return b;
 }
+
+
+// ==================== FileNest v4.0 scanner overrides ====================
+// Live camera = framing + steadiness.
+// Frozen full-resolution image = exact four-corner correction.
+
+async function v4RequestCamera(){
+  $('cameraRecovery').classList.add('hidden');
+  $('scannerAvailability').classList.add('hidden');
+
+  if(!cameraSupported()){
+    availability('Camera access is unavailable here. Open the HTTPS GitHub Pages URL directly in Safari.');
+    $('cameraRecovery').classList.remove('hidden');
+    return;
+  }
+
+  try{
+    if(stream){
+      try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+      stream=null;
+    }
+
+    stream=await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}
+    });
+
+    $('scanner').classList.remove('hidden');
+    $('scanner').setAttribute('aria-hidden','false');
+
+    const video=$('video');
+    video.srcObject=stream;
+    video.setAttribute('playsinline','');
+    video.muted=true;
+    await video.play();
+
+    v4MotionPrev=null;
+    v4SteadySince=0;
+    setHint(autoCapture
+      ? 'Frame the full page. FileNest will capture when the phone is steady.'
+      : 'Frame the full page, then tap Capture.','ready');
+
+    v4MotionLoop();
+  }catch(e){
+    const name=e?.name||'CameraError';
+    console.error(e);
+    availability(
+      name==='NotAllowedError'||name==='SecurityError'
+        ? 'Camera permission is blocked. Set Camera to Allow for this site, then tap Enable Camera.'
+        : name==='NotReadableError'
+        ? 'The camera is busy or unavailable. Close other camera apps/tabs and try again.'
+        : `Could not open the camera (${name}).`
+    );
+    $('cameraRecovery').classList.remove('hidden');
+  }
+}
+
+function v4MotionLoop(){
+  if(scanTimer){clearTimeout(scanTimer);scanTimer=null}
+
+  const tick=()=>{
+    if(!stream)return;
+    const video=$('video');
+
+    if(!video.videoWidth){
+      scanTimer=setTimeout(tick,140);
+      return;
+    }
+
+    const work=$('workCanvas');
+    const W=160,H=Math.max(1,Math.round(W*video.videoHeight/video.videoWidth));
+    work.width=W;work.height=H;
+
+    const ctx=work.getContext('2d',{willReadFrequently:true});
+    ctx.drawImage(video,0,0,W,H);
+
+    const rgba=ctx.getImageData(0,0,W,H).data;
+    const gray=new Uint8Array(W*H);
+
+    for(let i=0,p=0;i<gray.length;i++,p+=4){
+      gray[i]=(rgba[p]*77+rgba[p+1]*150+rgba[p+2]*29)>>8;
+    }
+
+    if(v4MotionPrev){
+      let diff=0,count=0;
+      for(let i=0;i<gray.length;i+=5){
+        diff+=Math.abs(gray[i]-v4MotionPrev[i]);
+        count++;
+      }
+      diff/=Math.max(1,count);
+
+      if(diff<5.0){
+        if(!v4SteadySince)v4SteadySince=performance.now();
+        const held=performance.now()-v4SteadySince;
+        setHint(`Steady ${(held/1000).toFixed(1)}s — capturing full page first`,'ready');
+
+        if(autoCapture&&held>1050){
+          v4SteadySince=0;
+          v4CaptureFullFrame();
+          return;
+        }
+      }else{
+        v4SteadySince=0;
+        setHint('Frame the full page and steady the phone','');
+      }
+    }
+
+    v4MotionPrev=gray;
+    scanTimer=setTimeout(tick,150);
+  };
+
+  tick();
+}
+
+async function v4CaptureFullFrame(){
+  if(captureProcessing||!stream)return;
+  captureProcessing=true;
+
+  try{
+    const video=$('video');
+    const c=document.createElement('canvas');
+    c.width=video.videoWidth;
+    c.height=video.videoHeight;
+    c.getContext('2d').drawImage(video,0,0);
+
+    v4FrozenBlob=await new Promise(res=>c.toBlob(res,'image/jpeg',.96));
+    v4FrozenW=c.width;
+    v4FrozenH=c.height;
+
+    if(v4FrozenURL)URL.revokeObjectURL(v4FrozenURL);
+    v4FrozenURL=URL.createObjectURL(v4FrozenBlob);
+
+    stopScanner();
+    await v4ShowFrozenEditor();
+  }finally{
+    captureProcessing=false;
+  }
+}
+
+async function v4ShowFrozenEditor(){
+  $('freezeImage').src=v4FrozenURL;
+  $('freezeEditor').classList.remove('hidden');
+  $('freezeEditor').setAttribute('aria-hidden','false');
+
+  await new Promise((resolve,reject)=>{
+    if($('freezeImage').complete)resolve();
+    else{
+      $('freezeImage').onload=resolve;
+      $('freezeImage').onerror=reject;
+    }
+  });
+
+  v4Layout();
+  v4Sweep();
+  await v4DetectCorners();
+}
+
+function v4HideFrozenEditor(){
+  $('freezeEditor').classList.add('hidden');
+  $('freezeEditor').setAttribute('aria-hidden','true');
+}
+
+function v4Sweep(){
+  const line=$('scanLine');
+  line.classList.remove('active');
+  void line.offsetWidth;
+  line.classList.add('active');
+}
+
+function v4Layout(){
+  const stage=$('freezeStage');
+  const sw=stage.clientWidth,sh=stage.clientHeight;
+  const ir=v4FrozenW/v4FrozenH,sr=sw/sh;
+  let dw,dh,ox,oy;
+
+  if(ir>sr){dw=sw;dh=sw/ir;ox=0;oy=(sh-dh)/2}
+  else{dh=sh;dw=sh*ir;oy=0;ox=(sw-dw)/2}
+
+  v4Map={x:dw/v4FrozenW,y:dh/v4FrozenH,ox,oy};
+
+  const c=$('freezeCanvas');
+  const dpr=window.devicePixelRatio||1;
+  c.width=Math.max(1,Math.floor(sw*dpr));
+  c.height=Math.max(1,Math.floor(sh*dpr));
+  c.style.width=sw+'px';
+  c.style.height=sh+'px';
+
+  v4DrawQuad();
+}
+
+function v4ToStage(p){
+  return {x:p.x*v4Map.x+v4Map.ox,y:p.y*v4Map.y+v4Map.oy}
+}
+function v4ToImage(x,y){
+  return {x:(x-v4Map.ox)/v4Map.x,y:(y-v4Map.oy)/v4Map.y}
+}
+
+function v4DrawQuad(){
+  if(!v4Quad)return;
+
+  const c=$('freezeCanvas');
+  const ctx=c.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  ctx.clearRect(0,0,c.width,c.height);
+
+  const pts=v4Quad.map(v4ToStage);
+
+  ctx.save();
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle='rgba(49,243,186,.10)';
+  ctx.strokeStyle='#31f3ba';
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  pts.forEach((p,i)=>{
+    const h=$(`corner${i}`);
+    h.style.left=p.x+'px';
+    h.style.top=p.y+'px';
+  });
+}
+
+function v4BindHandles(){
+  for(let i=0;i<4;i++){
+    const h=$(`corner${i}`);
+
+    h.onpointerdown=e=>{
+      v4Drag=i;
+      h.setPointerCapture?.(e.pointerId);
+      e.preventDefault();
+    };
+
+    h.onpointermove=e=>{
+      if(v4Drag!==i)return;
+
+      const r=$('freezeStage').getBoundingClientRect();
+      let x=e.clientX-r.left;
+      let y=e.clientY-r.top;
+
+      x=Math.max(v4Map.ox,Math.min(v4Map.ox+v4FrozenW*v4Map.x,x));
+      y=Math.max(v4Map.oy,Math.min(v4Map.oy+v4FrozenH*v4Map.y,y));
+
+      v4Quad[i]=v4ToImage(x,y);
+      v4DrawQuad();
+      e.preventDefault();
+    };
+
+    h.onpointerup=()=>v4Drag=-1;
+    h.onpointercancel=()=>v4Drag=-1;
+  }
+}
+
+async function v4DetectCorners(){
+  v4Sweep();
+  $('freezeHint').textContent='Analyzing frozen image…';
+
+  const img=await blobToImage(v4FrozenBlob);
+
+  const c=document.createElement('canvas');
+  const scale=Math.min(1,700/v4FrozenW);
+  c.width=Math.max(1,Math.round(v4FrozenW*scale));
+  c.height=Math.max(1,Math.round(v4FrozenH*scale));
+
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.drawImage(img,0,0,c.width,c.height);
+
+  let result=null;
+  try{
+    result=detectDocument(ctx.getImageData(0,0,c.width,c.height),c.width,c.height);
+  }catch(e){
+    console.error('Frozen detector error',e);
+  }
+
+  if(result?.quad){
+    const sx=v4FrozenW/c.width,sy=v4FrozenH/c.height;
+    v4Quad=result.quad.map(p=>({x:p.x*sx,y:p.y*sy}));
+    $('freezeHint').textContent='Corners detected — drag any corner if needed';
+  }else{
+    const mx=v4FrozenW*.08,my=v4FrozenH*.06;
+    v4Quad=[
+      {x:mx,y:my},
+      {x:v4FrozenW-mx,y:my},
+      {x:v4FrozenW-mx,y:v4FrozenH-my},
+      {x:mx,y:v4FrozenH-my}
+    ];
+    $('freezeHint').textContent='Adjust the four corners manually, then use this page';
+  }
+
+  v4DrawQuad();
+}
+
+async function v4AcceptPage(){
+  if(!v4FrozenBlob||!v4Quad)return;
+
+  const source=document.createElement('canvas');
+  source.width=v4FrozenW;
+  source.height=v4FrozenH;
+
+  const img=await blobToImage(v4FrozenBlob);
+  source.getContext('2d').drawImage(img,0,0);
+
+  const corrected=warpPerspectiveNative(source,v4Quad);
+  const blob=await new Promise(res=>corrected.toBlob(res,'image/jpeg',.95));
+
+  const page={
+    blob,
+    width:corrected.width,
+    height:corrected.height,
+    url:URL.createObjectURL(blob)
+  };
+
+  batchPages.push(page);
+  activeReviewIndex=batchPages.length-1;
+
+  pendingScanBlob=blob;
+  pendingScanWidth=corrected.width;
+  pendingScanHeight=corrected.height;
+  pendingScanURL=page.url;
+
+  v4HideFrozenEditor();
+
+  $('reviewImage').src=page.url;
+  $('reviewQuality').textContent=batchMode
+    ? `Batch page ${batchPages.length} — review before continuing`
+    : 'Perspective corrected';
+
+  $('nextBatchPage').classList.toggle('hidden',!batchMode);
+  $('useScan').textContent=batchMode?'✓ Finish Batch & Continue':'✓ Use Scan & Continue';
+
+  renderBatchStrip();
+  $('scanReview').classList.remove('hidden');
+  $('scanReview').setAttribute('aria-hidden','false');
+  refreshReviewPreview();
+}
+
+// Override old scanner interactions with v4.0 behavior.
+$('openScannerBtn').onclick=()=>v4RequestCamera();
+$('enableCameraBtn').onclick=()=>v4RequestCamera();
+$('captureBtn').onclick=()=>v4CaptureFullFrame();
+$('freezeCancel').onclick=()=>{v4HideFrozenEditor();v4RequestCamera()};
+$('freezeAuto').onclick=()=>v4DetectCorners();
+$('freezeUse').onclick=()=>v4AcceptPage();
+
+$('nextBatchPage').onclick=()=>{
+  $('scanReview').classList.add('hidden');
+  v4RequestCamera();
+};
+
+$('retakeScan').onclick=()=>{
+  if(batchPages.length){
+    const old=batchPages.splice(activeReviewIndex,1)[0];
+    try{URL.revokeObjectURL(old.url)}catch(e){}
+    activeReviewIndex=Math.max(0,batchPages.length-1);
+  }
+  $('scanReview').classList.add('hidden');
+  v4RequestCamera();
+};
+
+v4BindHandles();
+window.addEventListener('resize',()=>{
+  if(!$('freezeEditor').classList.contains('hidden'))v4Layout();
+});
+// ================== end FileNest v4.0 scanner overrides ==================
 
 initCategories();renderRules();
 </script>
