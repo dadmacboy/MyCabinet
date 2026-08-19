@@ -52,7 +52,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 .reviewActions button{flex:1}
 
 
-/* FileNest v4.4 visible corner editor */
+/* FileNest v4.5 visible corner editor */
 #freezeEditor{display:flex}
 #freezeEditor.hidden{display:none!important}
 #freezeImage{z-index:1}
@@ -114,9 +114,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>Use the document scanner for edge detection and auto-capture, or choose an existing file. After scanning, FileNest keeps the prepared PDF/JPEG here until you choose where to save it.</p></div></div>
     <div class="actions">
       <button class="primary" id="openScannerBtn">▣ Scan Document</button>
-<div class="small" style="margin-top:8px">
-  Choose Single or Batch and watermark settings first. Then FileNest opens the phone’s normal rear camera.
-</div>
+
 
       <label class="buttonLabel secondary" for="fileInput">＋ Choose existing file</label>
       <input id="fileInput" class="hidden" type="file" accept="image/*,.pdf" />
@@ -154,7 +152,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   </section>
 
   <section class="card">
-    <div class="step"><div class="num">4</div><div><h2>Choose where to file it</h2><p>On iPhone, Proton Drive and Google Drive are reached through the Share Sheet. FileNest prepares the renamed document first.</p></div></div>
+    <div class="step"><div class="num">4</div><div><h2>Choose where to file it</h2></div></div>
     <div class="grid two" style="margin-top:14px">
       <div class="destination"><h3>🟣 Proton Drive</h3><p>Opens iPhone sharing. Choose Proton Drive, then the suggested folder.</p><button class="purple" id="protonBtn" style="width:100%;margin-top:10px">Save to Proton Drive</button></div>
       <div class="destination"><h3>🔵 Google Drive</h3><p>Opens iPhone sharing. Choose Drive, then the suggested folder.</p><button class="blue" id="googleBtn" style="width:100%;margin-top:10px">Save to Google Drive</button></div>
@@ -170,7 +168,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
   </section>
 
-  <div class="footer">FileNest v4.4 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
+  <div class="footer">FileNest v4.5 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
 </div>
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
@@ -253,7 +251,17 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   <div id="batchStrip" class="batchStrip hidden"></div>
   <div class="reviewTools">
     <label>Scan appearance</label>
-    <div class="modeChoice"><button type="button" id="modeOriginal">Original</button><button type="button" id="modeDocument" class="active">Document</button><button type="button" id="modeBW">B&amp;W</button></div>
+    <select id="documentTypeDropdown">
+        <option value="">Select document type…</option>
+        <option value="B&amp;amp;W">B&amp;W</option>
+        <option value="↶ Retake">↶ Retake</option>
+        <option value="↻ Re-detect">↻ Re-detect</option>
+        <option value="✓ Use Scan &amp; Continue">✓ Use Scan & Continue</option>
+        <option value="✓ Use This Page">✓ Use This Page</option>
+        <option value="＋ Next Page">＋ Next Page</option>
+        <option value="📄 PDF — Document">📄 PDF — Document</option>
+        <option value="🖼️ JPEG — Image">🖼️ JPEG — Image</option>
+      </select>
     <label class="watermarkRow"><input id="watermarkToggle" type="checkbox" checked> Add small FileNest logo watermark</label>
   </div>
   <div class="reviewOptions">
@@ -1473,7 +1481,7 @@ window.addEventListener('resize',()=>{
 // ================== end FileNest v4.0 scanner overrides ==================
 
 
-// ================= FileNest v4.4 — Still Camera Capture =================
+// ================= FileNest v4.5 — Still Camera Capture =================
 // Use the phone's normal still-camera flow instead of a continuous video stream.
 // After the photo returns, FileNest opens the frozen-image corner editor.
 
@@ -1576,7 +1584,7 @@ if(scanButton){
 }
 
 
-// ================= FileNest v4.4 — Scan Setup =================
+// ================= FileNest v4.5 — Scan Setup =================
 function v43UpdateSetupUI(){
   $('setupSingle').classList.toggle('active',!batchMode);
   $('setupBatch').classList.toggle('active',batchMode);
@@ -1666,7 +1674,41 @@ if($('watermarkToggle')){
     refreshReviewPreview();
   };
 }
-// ================= end FileNest v4.4 Scan Setup =================
+// ================= end FileNest v4.5 Scan Setup =================
+
+
+// ================= FileNest v4.5 UI cleanup =================
+function v45BindDocumentTypeDropdown(){
+  const dd=$('documentTypeDropdown');
+  if(!dd)return;
+
+  dd.onchange=()=>{
+    const value=dd.value;
+
+    // Update any generated Document Type select.
+    const selects=[...document.querySelectorAll('select')];
+    const target=selects.find(s=>{
+      const label=s.closest('.field')?.querySelector('label')?.textContent||'';
+      return /document type|kind of document/i.test(label) && s!==dd;
+    });
+
+    if(target){
+      target.value=value;
+      target.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+
+    // If app tracks dynamic field values via fieldValues or similar, trigger normal generation.
+    try{
+      const input=[...document.querySelectorAll('[data-field]')].find(el=>/document type/i.test(el.dataset.field||''));
+      if(input && input!==dd){
+        input.value=value;
+        input.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+    }catch(e){}
+  };
+}
+setTimeout(v45BindDocumentTypeDropdown,0);
+// ================= end v4.5 cleanup =================
 
 initCategories();renderRules();
 </script>

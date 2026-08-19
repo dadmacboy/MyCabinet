@@ -1,17 +1,22 @@
-FileNest v4.4 — Header Version Update
+FileNest v4.5 — UI Cleanup
 Updated: 19 Aug 2026
 
-CHANGE
-- The version number is now displayed directly next to the FileNest name at the top of the page:
-  FileNest v4.4
-- The update date remains directly below:
-  Updated 19 Aug 2026
+CHANGES
+1. Step 1
+   - Removed the explanatory scanner sentence.
+
+2. Step 2
+   - Replaced the document-type button selection with a dropdown.
+   - Document types are alphabetized A–Z.
+
+3. Step 4
+   - Removed the explanatory iPhone / Proton Drive sentence.
 
 UNCHANGED
+- Still-camera scan flow
 - Scan Setup
-- Still-camera capture
-- Frozen four-corner editor
 - Batch workflow
+- Frozen four-corner editor
 - PDF/JPEG output
 - Watermark default ON
-- No-sidecar behavior
+- Filing logic
