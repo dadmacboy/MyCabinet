@@ -51,6 +51,39 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 .reviewActions{display:flex;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom))}
 .reviewActions button{flex:1}
 
+
+/* FileNest v4.1 visible corner editor */
+#freezeEditor{display:flex}
+#freezeEditor.hidden{display:none!important}
+#freezeImage{z-index:1}
+#freezeCanvas{z-index:4;pointer-events:none}
+#scanLine{z-index:5}
+#freezeHint{z-index:9}
+.cornerHandle{
+  z-index:10!important;
+  width:34px!important;
+  height:34px!important;
+  background:#31f3ba!important;
+  border:4px solid #fff!important;
+  box-shadow:0 0 0 3px rgba(6,59,52,.95),0 0 14px rgba(49,243,186,.85)!important;
+  pointer-events:auto!important;
+  touch-action:none!important;
+}
+#liveFrameGuide{
+  position:absolute;
+  left:7%;right:7%;top:12%;bottom:12%;
+  border:3px dashed rgba(255,255,255,.85);
+  border-radius:14px;
+  pointer-events:none;
+  z-index:6;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.08);
+  transition:.15s ease;
+}
+#liveFrameGuide.steady{
+  border-color:#31f3ba;
+  box-shadow:0 0 14px rgba(49,243,186,.55),0 0 0 9999px rgba(0,0,0,.06);
+}
+
 </style>
 </head>
 <body>
@@ -114,14 +147,14 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
   </section>
 
-  <div class="footer">FileNest v3 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
+  <div class="footer">FileNest v4.1 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
 </div>
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
-  <div class="scannerTop"><strong>Document Scanner</strong><button id="closeScanner" class="closeBtn">Close</button></div>
+  <div class="scannerTop"><strong>Document Scanner · v4.1</strong><button id="closeScanner" class="closeBtn">Close</button></div>
   <div class="scannerStage">
     <video id="video" autoplay playsinline muted></video>
-    <canvas id="overlay"></canvas>
+    <canvas id="overlay"></canvas><div id="liveFrameGuide"></div>
     <div class="scanGuide" id="scanGuide"></div><div id="batchBadge" class="batchBadge hidden">Batch • 0 pages</div>
     <div class="scannerHint"><span id="scanDot" class="scanDot"></span><span id="scanHint">Point camera at the document</span></div>
   </div>
@@ -137,7 +170,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 
 <div id="freezeEditor" class="freezeEditor hidden" aria-hidden="true">
   <div class="freezeTop">
-    <strong>Adjust Document Corners</strong>
+    <strong>Adjust Document Corners</strong><span class="small" style="color:#9affdf">Drag the 4 green circles</span>
     <button id="freezeCancel" class="closeBtn">Retake</button>
   </div>
   <div class="freezeStage" id="freezeStage">
@@ -1046,6 +1079,7 @@ async function v4RequestCamera(){
 
     v4MotionPrev=null;
     v4SteadySince=0;
+    $('liveFrameGuide')?.classList.remove('steady');
     setHint(autoCapture
       ? 'Frame the full page. FileNest will capture when the phone is steady.'
       : 'Frame the full page, then tap Capture.','ready');
@@ -1102,6 +1136,7 @@ function v4MotionLoop(){
       if(diff<5.0){
         if(!v4SteadySince)v4SteadySince=performance.now();
         const held=performance.now()-v4SteadySince;
+        $('liveFrameGuide')?.classList.add('steady');
         setHint(`Steady ${(held/1000).toFixed(1)}s — capturing full page first`,'ready');
 
         if(autoCapture&&held>1050){
@@ -1111,6 +1146,7 @@ function v4MotionLoop(){
         }
       }else{
         v4SteadySince=0;
+        $('liveFrameGuide')?.classList.remove('steady');
         setHint('Frame the full page and steady the phone','');
       }
     }
@@ -1160,9 +1196,12 @@ async function v4ShowFrozenEditor(){
     }
   });
 
-  v4Layout();
   v4Sweep();
   await v4DetectCorners();
+  requestAnimationFrame(()=>{
+    v4Layout();
+    v4DrawQuad();
+  });
 }
 
 function v4HideFrozenEditor(){
@@ -1297,10 +1336,11 @@ async function v4DetectCorners(){
       {x:v4FrozenW-mx,y:v4FrozenH-my},
       {x:mx,y:v4FrozenH-my}
     ];
-    $('freezeHint').textContent='Adjust the four corners manually, then use this page';
+    $('freezeHint').textContent='Corners not detected automatically — drag the 4 green circles to the page corners';
   }
 
   v4DrawQuad();
+  requestAnimationFrame(()=>v4DrawQuad());
 }
 
 async function v4AcceptPage(){

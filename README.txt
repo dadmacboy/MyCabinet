@@ -1,23 +1,19 @@
-FileNest v4.0 — Frozen Image Precision Scanner
-Updated: 18 Aug 2026
+FileNest v4.1 — Visible Corner Editor Fix
+Updated: 19 Aug 2026
 
-WHAT CHANGED
-- Live camera is now used only for framing and steadiness.
-- Auto capture waits for about one second of a steady phone.
-- Exact document corners are determined after capture on the frozen image.
-- An animated scan line shows the analysis step.
-- Four draggable corner handles appear on the frozen image.
-- You can manually correct any corner before perspective correction.
-- This is intended to work better when the page and background are similar colors.
+FIXES
+- Visible version/date updated to v4.1.
+- Scanner header now shows Document Scanner · v4.1.
+- Camera has a persistent white dashed framing guide.
+- The guide turns green when the phone is steady.
+- Frozen-image editor forces four large green draggable corner handles to the front.
+- Corner handles are larger and high contrast.
+- Canvas no longer captures touches over the corner handles.
+- Frozen quad is redrawn after image layout completes.
+- If automatic detection is weak, the default four-corner rectangle remains visible for manual correction.
 
-BATCH
-- Each page is captured and corner-corrected individually.
-- After approving a page, choose Next Page or Finish Batch & Continue.
-- Final PDF remains multipage.
-
-WATERMARK
-- Watermark is ON by default.
-- It can be turned OFF during review.
-
-VERSION
-- The app displays: Version 4.0 · Updated 18 Aug 2026.
+UNCHANGED
+- Batch workflow
+- PDF/JPEG handling
+- Watermark default ON
+- Frozen-image precision architecture
