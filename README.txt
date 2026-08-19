@@ -1,19 +1,37 @@
-FileNest v4.1 — Visible Corner Editor Fix
+FileNest v4.2 — Still Camera Scan Flow
 Updated: 19 Aug 2026
 
-FIXES
-- Visible version/date updated to v4.1.
-- Scanner header now shows Document Scanner · v4.1.
-- Camera has a persistent white dashed framing guide.
-- The guide turns green when the phone is steady.
-- Frozen-image editor forces four large green draggable corner handles to the front.
-- Corner handles are larger and high contrast.
-- Canvas no longer captures touches over the corner handles.
-- Frozen quad is redrawn after image layout completes.
-- If automatic detection is weak, the default four-corner rectangle remains visible for manual correction.
+CORE CHANGE
+FileNest no longer uses a continuous live video stream as its primary scanner.
 
-UNCHANGED
-- Batch workflow
-- PDF/JPEG handling
-- Watermark default ON
-- Frozen-image precision architecture
+NEW FLOW
+1. Tap Open Camera to Scan.
+2. iPhone opens its normal rear-camera photo interface.
+3. Take the picture.
+4. Accept/use the photo in the camera interface.
+5. FileNest receives the full-resolution still image.
+6. FileNest shows the frozen-image analysis sweep.
+7. Four draggable green corner handles appear.
+8. Adjust any corner if needed.
+9. Tap Use This Page.
+10. Review enhancement, watermark, PDF/JPEG, then continue filing.
+
+WHY THIS CHANGE
+- Better still-image quality.
+- Native phone autofocus/exposure/camera UI.
+- No continuous video-stream permission/locking problems.
+- No premature auto-snap based on moving corners.
+- Corner precision happens after the image is frozen.
+
+BATCH
+- Batch workflow remains deliberate.
+- After approving a page, tap Next Page.
+- The phone camera opens again for the next page.
+- Finish Batch & Continue produces the final multipage PDF.
+
+WATERMARK
+- ON by default.
+- Can be turned OFF in review.
+
+VERSION
+- Version 4.2 · Updated 19 Aug 2026.

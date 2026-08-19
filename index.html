@@ -52,7 +52,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 .reviewActions button{flex:1}
 
 
-/* FileNest v4.1 visible corner editor */
+/* FileNest v4.2 visible corner editor */
 #freezeEditor{display:flex}
 #freezeEditor.hidden{display:none!important}
 #freezeImage{z-index:1}
@@ -96,9 +96,15 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   <section class="card">
     <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>Use the document scanner for edge detection and auto-capture, or choose an existing file. After scanning, FileNest keeps the prepared PDF/JPEG here until you choose where to save it.</p></div></div>
     <div class="actions">
-      <button class="primary" id="openScannerBtn">▣ Scan document</button>
+      <button class="primary" id="openScannerBtn">▣ Scan Document</button>
+<div class="small" style="margin-top:8px">
+  Uses the phone’s normal rear camera. Take the photo first; FileNest will detect and let you adjust the four document corners afterward.
+</div>
+
       <label class="buttonLabel secondary" for="fileInput">＋ Choose existing file</label>
       <input id="fileInput" class="hidden" type="file" accept="image/*,.pdf" />
+<input id="stillCameraInput" type="file" accept="image/*" capture="environment" class="hidden" aria-hidden="true">
+
     </div>
     <div class="filebox" style="margin-top:14px">
       <img id="thumb" class="thumb" alt="Document preview" />
@@ -147,11 +153,11 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
   </section>
 
-  <div class="footer">FileNest v4.1 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
+  <div class="footer">FileNest v4.2 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
 </div>
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
-  <div class="scannerTop"><strong>Document Scanner · v4.1</strong><button id="closeScanner" class="closeBtn">Close</button></div>
+  <div class="scannerTop"><strong>Document Scanner · v4.2</strong><button id="closeScanner" class="closeBtn">Close</button></div>
   <div class="scannerStage">
     <video id="video" autoplay playsinline muted></video>
     <canvas id="overlay"></canvas><div id="liveFrameGuide"></div>
@@ -467,7 +473,7 @@ async function openScannerWithExistingStream(){
   lastQuad=null;
 
   updateMetrics(0,0);
-  setHint('Camera ready — place the full page inside the guide','ready');
+  setHint('Still-camera mode active','ready');
 
   scheduleScan();
 }
@@ -1081,7 +1087,7 @@ async function v4RequestCamera(){
     v4SteadySince=0;
     $('liveFrameGuide')?.classList.remove('steady');
     setHint(autoCapture
-      ? 'Frame the full page. FileNest will capture when the phone is steady.'
+      ? 'Take the photo with the phone camera, then adjust corners in FileNest.'
       : 'Frame the full page, then tap Capture.','ready');
 
     v4MotionLoop();
@@ -1415,6 +1421,109 @@ window.addEventListener('resize',()=>{
   if(!$('freezeEditor').classList.contains('hidden'))v4Layout();
 });
 // ================== end FileNest v4.0 scanner overrides ==================
+
+
+// ================= FileNest v4.2 — Still Camera Capture =================
+// Use the phone's normal still-camera flow instead of a continuous video stream.
+// After the photo returns, FileNest opens the frozen-image corner editor.
+
+async function v42HandleStillPhoto(file){
+  if(!file)return;
+
+  try{
+    // Ensure any live stream left by an older build is stopped.
+    if(stream){
+      try{stream.getTracks().forEach(t=>t.stop())}catch(e){}
+      stream=null;
+    }
+
+    const bitmapImg=await new Promise((resolve,reject)=>{
+      const img=new Image();
+      const u=URL.createObjectURL(file);
+      img.onload=()=>{URL.revokeObjectURL(u);resolve(img)};
+      img.onerror=reject;
+      img.src=u;
+    });
+
+    // Draw through canvas to normalize orientation as Safari presents it.
+    const c=document.createElement('canvas');
+    c.width=bitmapImg.naturalWidth||bitmapImg.width;
+    c.height=bitmapImg.naturalHeight||bitmapImg.height;
+
+    const ctx=c.getContext('2d');
+    ctx.drawImage(bitmapImg,0,0,c.width,c.height);
+
+    v4FrozenBlob=await new Promise(res=>c.toBlob(res,'image/jpeg',.96));
+    v4FrozenW=c.width;
+    v4FrozenH=c.height;
+
+    if(v4FrozenURL)URL.revokeObjectURL(v4FrozenURL);
+    v4FrozenURL=URL.createObjectURL(v4FrozenBlob);
+
+    await v4ShowFrozenEditor();
+  }catch(e){
+    console.error('Still camera image processing failed',e);
+    availability('The photo was taken, but FileNest could not prepare it for scanning. Try taking the picture again.');
+  }finally{
+    // Allow selecting/taking the same photo again if needed.
+    $('stillCameraInput').value='';
+  }
+}
+
+function v42OpenStillCamera(){
+  // The click must occur directly from the user's tap so iOS can open the camera.
+  const input=$('stillCameraInput');
+  if(!input){
+    availability('Still camera input is unavailable.');
+    return;
+  }
+  input.click();
+}
+
+// Replace live-camera entry points.
+$('openScannerBtn').onclick=v42OpenStillCamera;
+$('enableCameraBtn').onclick=v42OpenStillCamera;
+
+// Capture/Auto controls from the live video scanner are no longer part of v4.2.
+$('stillCameraInput').onchange=e=>{
+  const file=e.target.files?.[0];
+  if(file)v42HandleStillPhoto(file);
+};
+
+// Retake from frozen editor simply reopens the standard camera.
+$('freezeCancel').onclick=()=>{
+  v4HideFrozenEditor();
+  v42OpenStillCamera();
+};
+
+// Next Page in batch opens the standard camera again.
+$('nextBatchPage').onclick=()=>{
+  $('scanReview').classList.add('hidden');
+  v42OpenStillCamera();
+};
+
+// Retake after page review removes the reviewed page and opens camera again.
+$('retakeScan').onclick=()=>{
+  if(batchPages.length){
+    const old=batchPages.splice(activeReviewIndex,1)[0];
+    try{URL.revokeObjectURL(old.url)}catch(e){}
+    activeReviewIndex=Math.max(0,batchPages.length-1);
+  }
+  $('scanReview').classList.add('hidden');
+  v42OpenStillCamera();
+};
+
+// Ensure the old fixed live scanner overlay cannot appear accidentally.
+try{
+  $('scanner')?.classList.add('hidden');
+  $('scanner')?.setAttribute('aria-hidden','true');
+}catch(e){}
+
+// Visible workflow hint.
+const scanButton=$('openScannerBtn');
+if(scanButton){
+  scanButton.textContent='Open Camera to Scan';
+}
 
 initCategories();renderRules();
 </script>
