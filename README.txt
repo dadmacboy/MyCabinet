@@ -1,31 +1,27 @@
-FileNest v4.5.1 — Repaired UI Cleanup
+FileNest v4.6 — Security Update
 Updated: 19 Aug 2026
 
-This release was rebuilt directly from the working v4.4 package.
+SECURITY CHANGES
+- Personal names are removed from public index.html.
+- Exact Proton Drive folder paths are removed from public index.html.
+- The private filing map is imported locally and stored only in that browser.
+- A Content Security Policy blocks outbound network connections.
+- No Proton password, token, session key, or credential is stored.
 
-CHANGES ONLY
-1. Step 1
-   - Removed the explanatory scanner text.
+SETUP
+1. Upload only the files in FileNest_v4_6_SECURITY_PUBLIC.zip to GitHub.
+2. NEVER upload FileNest_PRIVATE_CONFIG_DO_NOT_UPLOAD.json to GitHub.
+3. On your phone, open FileNest.
+4. Under Private filing map, choose Import private filing map.
+5. Select FileNest_PRIVATE_CONFIG_DO_NOT_UPLOAD.json.
+6. FileNest reloads and uses your filing structure locally.
 
-2. Step 2
-   - Removed the category chip/buttons.
-   - The existing Category dropdown is now labeled "Kind of document".
-   - Its options are sorted alphabetically A–Z.
-   - The normal category-specific fields underneath remain unchanged.
+If browser/site data is cleared, import the private configuration again.
 
-3. Step 4
-   - Removed the iPhone / Proton Drive Share Sheet explanation from the heading.
-
-NOT CHANGED
-- Scan Setup
-- Still-camera capture
-- Frozen four-corner editor
-- Original / Document / B&W review controls
+UNCHANGED
+- Still-camera scanning
 - Batch mode
-- Watermark
+- Frozen corner editor
 - PDF/JPEG
-- Filing rules
-- Save/share behavior
-
-IMPORTANT
-The broken v4.5 dropdown code was not reused.
+- Watermark behavior
+- Share Sheet saving

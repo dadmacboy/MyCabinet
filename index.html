@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'none'; font-src 'self'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none';">
 <meta name="theme-color" content="#0f766e" />
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
@@ -52,7 +53,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 .reviewActions button{flex:1}
 
 
-/* FileNest v4.5.1 visible corner editor */
+/* FileNest v4.6 visible corner editor */
 #freezeEditor{display:flex}
 #freezeEditor.hidden{display:none!important}
 #freezeImage{z-index:1}
@@ -106,7 +107,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 <body>
 <div class="app">
   <header class="hero">
-    <h1>FileNest <span class="small" style="font-size:.42em;vertical-align:middle;font-weight:800">v4.5.1</span></h1>
+    <h1>FileNest <span class="small" style="font-size:.42em;vertical-align:middle;font-weight:800">v4.6</span></h1>
     <p>Scan it. Identify it. File it into your real Proton Drive structure.</p>
   </header>
 
@@ -166,7 +167,18 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
   </section>
 
-  <div class="footer">FileNest v4.5.1 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
+  
+  <section class="card" id="securityCard">
+    <div class="step"><div class="num">🔒</div><div><h2>Private filing map</h2><p id="privateConfigStatus">Checking local configuration…</p></div></div>
+    <div class="actions">
+      <label class="buttonLabel secondary" for="privateConfigInput">Import private filing map</label>
+      <input id="privateConfigInput" class="hidden" type="file" accept=".json,application/json" />
+      <button id="removePrivateConfig" class="secondary" type="button">Remove from this device</button>
+    </div>
+    <div class="small" style="margin-top:10px">Stored only in this browser. Never upload the private configuration file to GitHub.</div>
+  </section>
+
+<div class="footer">FileNest v4.6 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
 </div>
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
@@ -273,78 +285,85 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 // Scans produce one document only: PDF or JPEG. No TXT/JSON sidecar is created automatically.
 
 const today = new Date().toISOString().slice(0,10);
+const PRIVATE_CONFIG_KEY='fileNestPrivateConfigV1';
+function getPrivateConfig(){try{return JSON.parse(localStorage.getItem(PRIVATE_CONFIG_KEY)||'null')}catch{return null}}
+function cfg(){return getPrivateConfig()||{schema:1,people:["Person 1","Person 2","Person 3","Person 4","Family"],defaultPerson:"Person 1",paths:{inbox:"99 Inbox"}}}
+function cfgPath(key,suffix=""){const c=cfg(),base=(c.paths&&c.paths[key])||c.paths?.inbox||"99 Inbox";return suffix?`${base}/${suffix}`:base}
+function cfgPeople(includeFamily=true){const p=(cfg().people||["Person 1","Person 2","Person 3","Person 4","Family"]).slice();return includeFamily?p:p.filter(x=>x!=="Family")}
+function cfgDefaultPerson(){return cfg().defaultPerson||cfgPeople()[0]||"Person 1"}
+
 const definitions = {
   "Personal & Family": {
     pattern:"{Person}_{Document Type}_{Date}",
-    fields:[["Person","select",["David","Ursula","Romulo","Marcos","Family"]],["Document Type","select",["Identification / ID","Birth Certificate","Marriage Certificate","Civic / Voting","Personal Record","Family Photo","Family Benefits Hub","Other"]],["Date","date",today],["Detail","text","Optional detail"]],
-    resolveFolder(v){const t=v["Document Type"],p=v.Person||"David";if(t==="Identification / ID")return p==="David"?"01 Personal & Family/David/Identification":`01 Personal & Family/${p}/Personal Records`;if(t==="Birth Certificate"||t==="Marriage Certificate")return "01 Personal & Family/Vital Records";if(t==="Civic / Voting")return "01 Personal & Family/Civic & Voting";if(t==="Family Photo")return "01 Personal & Family/Family Photos";if(t==="Family Benefits Hub")return "01 Personal & Family/Family Benefits Hub";if(t==="Personal Record")return p==="David"?"01 Personal & Family/David/Personal Records":`01 Personal & Family/${p}/Personal Records`;return "99 Inbox"}
+    fields:[["Person","select",()=>cfgPeople(true)],["Document Type","select",["Identification / ID","Birth Certificate","Marriage Certificate","Civic / Voting","Personal Record","Family Photo","Family Benefits Hub","Other"]],["Date","date",today],["Detail","text","Optional detail"]],
+    resolveFolder(v){const t=v["Document Type"],p=v.Person||cfgDefaultPerson(),d=cfgDefaultPerson();if(t==="Identification / ID")return p===d?cfgPath("primaryIdentification"):cfgPath("personalRoot",`${p}/Personal Records`);if(t==="Birth Certificate"||t==="Marriage Certificate")return cfgPath("vitalRecords");if(t==="Civic / Voting")return cfgPath("civicVoting");if(t==="Family Photo")return cfgPath("familyPhotos");if(t==="Family Benefits Hub")return cfgPath("familyBenefits");if(t==="Personal Record")return p===d?cfgPath("primaryPersonalRecords"):cfgPath("personalRoot",`${p}/Personal Records`);return cfgPath("inbox")}
   },
   "Military & Veteran": {
     pattern:"{Document Type}_{Person}_{Date}",
-    fields:[["Document Type","select",["DD214 / Discharge","Orders","Award","OMPF","Retirement","Separation","Security Clearance","Career Archive","SBP","TSP","Other"]],["Person","text","e.g., David"],["Date","date",today],["Detail","text","Optional detail"]],
-    resolveFolder(v){return ({"DD214 / Discharge":"02 Military & Veteran/Military Records/Separation","Orders":"02 Military & Veteran/Military Records/Orders","Award":"02 Military & Veteran/Military Records/Awards","OMPF":"02 Military & Veteran/Military Records/OMPF","Retirement":"02 Military & Veteran/Military Records/Retirement","Separation":"02 Military & Veteran/Military Records/Separation","Security Clearance":"02 Military & Veteran/Military Records/Security Clearance","Career Archive":"02 Military & Veteran/Military Records/Career Archive","SBP":"02 Military & Veteran/SBP","TSP":"02 Military & Veteran/TSP"})[v["Document Type"]]||"99 Inbox"}
+    fields:[["Document Type","select",["DD214 / Discharge","Orders","Award","OMPF","Retirement","Separation","Security Clearance","Career Archive","SBP","TSP","Other"]],["Person","text","Person"],["Date","date",today],["Detail","text","Optional detail"]],
+    resolveFolder(v){return ({"DD214 / Discharge":cfgPath("milSeparation"),"Orders":cfgPath("milOrders"),"Award":cfgPath("milAwards"),"OMPF":cfgPath("milOMPF"),"Retirement":cfgPath("milRetirement"),"Separation":cfgPath("milSeparation"),"Security Clearance":cfgPath("milSecurity"),"Career Archive":cfgPath("milCareer"),"SBP":cfgPath("sbp"),"TSP":cfgPath("tsp")})[v["Document Type"]]||cfgPath("inbox")}
   },
   "VA": {
     pattern:"VA_{Document Type}_{Person}_{Date}",
-    fields:[["Document Type","select",["Claim","Decision","DBQ","Medical Evidence","Education Benefit","Benefits Letter","BDD","Supplemental Education Claim","Other"]],["Person","text","e.g., David"],["Date","date",today],["Claim or Reference","text","Optional claim/reference"]],
-    resolveFolder(v){return ({"Claim":"02 Military & Veteran/VA/Disability/Claims","Decision":"02 Military & Veteran/VA/Disability/Decisions","DBQ":"02 Military & Veteran/VA/Disability/DBQs","Medical Evidence":"02 Military & Veteran/VA/Disability/Medical Evidence","Education Benefit":"02 Military & Veteran/VA/Education","Benefits Letter":"02 Military & Veteran/VA/Benefits","BDD":"02 Military & Veteran/VA/BDD","Supplemental Education Claim":"02 Military & Veteran/VA/Suplemental VA Claim Education"})[v["Document Type"]]||"99 Inbox"}
+    fields:[["Document Type","select",["Claim","Decision","DBQ","Medical Evidence","Education Benefit","Benefits Letter","BDD","Supplemental Education Claim","Other"]],["Person","text","Person"],["Date","date",today],["Claim or Reference","text","Optional claim/reference"]],
+    resolveFolder(v){return ({"Claim":cfgPath("vaClaims"),"Decision":cfgPath("vaDecisions"),"DBQ":cfgPath("vaDBQ"),"Medical Evidence":cfgPath("vaMedical"),"Education Benefit":cfgPath("vaEducation"),"Benefits Letter":cfgPath("vaBenefits"),"BDD":cfgPath("vaBDD"),"Supplemental Education Claim":cfgPath("vaSupplementalEducation")})[v["Document Type"]]||cfgPath("inbox")}
   },
   "Medical": {
     pattern:"{Person}_{Provider}_{Document Type}_{Date}",
-    fields:[["Person","select",["David","Ursula","Romulo","Marcos"]],["Provider","text","Hospital, clinic, or provider"],["Document Type","select",["Visit Summary","Lab Result","Imaging","Prescription","Referral","Dental","Vision","Medical Record","Other"]],["Date","date",today]],
-    resolveFolder(v){return `03 Medical/${v.Person||"David"}`}
+    fields:[["Person","select",()=>cfgPeople(false)],["Provider","text","Hospital, clinic, or provider"],["Document Type","select",["Visit Summary","Lab Result","Imaging","Prescription","Referral","Dental","Vision","Medical Record","Other"]],["Date","date",today]],
+    resolveFolder(v){return cfgPath("medicalRoot",v.Person||cfgDefaultPerson())}
   },
   "Financial / Tax": {
     pattern:"{Institution}_{Document Type}_{Tax Year}_{Date}",
     fields:[["Document Type","select",["Tax Return","W-2","1099","1095-C","Tax Payment","Banking","Budget","Retirement","Other"]],["Institution","text","Bank, employer, agency"],["Tax Year","text",String(new Date().getFullYear())],["Date","date",today]],
-    resolveFolder(v){const t=v["Document Type"],y=sanitize(v["Tax Year"]||new Date().getFullYear());if(["Tax Return","W-2","1099","1095-C","Tax Payment"].includes(t))return `04 Financial/Taxes/${y}`;if(t==="Banking")return "04 Financial/Banking";if(t==="Budget")return "04 Financial/Budget";if(t==="Retirement")return "04 Financial/Retirement";return "99 Inbox"}
+    resolveFolder(v){const t=v["Document Type"],y=sanitize(v["Tax Year"]||new Date().getFullYear());if(["Tax Return","W-2","1099","1095-C","Tax Payment"].includes(t))return cfgPath("taxRoot",y);if(t==="Banking")return cfgPath("banking");if(t==="Budget")return cfgPath("budget");if(t==="Retirement")return cfgPath("financialRetirement");return cfgPath("inbox")}
   },
   "Employment & Career": {
     pattern:"{Employer}_{Document Type}_{Position}_{Date}",
     fields:[["Document Type","select",["Resume","Cover Letter","Application","Offer Letter","Certification","SkillBridge","Previous Work","Other"]],["Employer","text","Employer or organization"],["Position","text","Job title or subject"],["Date","date",today]],
-    resolveFolder(v){return ({"Resume":"05 Employment & Career/Resumes","Cover Letter":"05 Employment & Career/Applications","Application":"05 Employment & Career/Applications","Offer Letter":"05 Employment & Career/Applications","Certification":"05 Employment & Career/Certifications","SkillBridge":"05 Employment & Career/DoWEA Skillbridge","Previous Work":"05 Employment & Career/Previous Work"})[v["Document Type"]]||"99 Inbox"}
+    resolveFolder(v){return ({"Resume":cfgPath("resumes"),"Cover Letter":cfgPath("applications"),"Application":cfgPath("applications"),"Offer Letter":cfgPath("applications"),"Certification":cfgPath("certifications"),"SkillBridge":cfgPath("skillbridge"),"Previous Work":cfgPath("previousWork")})[v["Document Type"]]||cfgPath("inbox")}
   },
   "Education": {
     pattern:"{Person}_{School}_{Document Type}_{Term}",
-    fields:[["Person","select",["David","Ursula","Romulo","Marcos"]],["School","text","School name"],["Document Type","select",["Transcript","Enrollment","Tuition","Acceptance","Certificate","Diploma","Theology Study","Other"]],["Term","text","e.g., Fall 2026"]],
-    resolveFolder(v){const p=v.Person||"David";if(v["Document Type"]==="Theology Study")return "06 Education/Theology";if(p==="Romulo")return "01 Personal & Family/Romulo/Education";if(p==="Marcos")return "01 Personal & Family/Marcos/Education";return "06 Education/David"}
+    fields:[["Person","select",()=>cfgPeople(false)],["School","text","School name"],["Document Type","select",["Transcript","Enrollment","Tuition","Acceptance","Certificate","Diploma","Theology Study","Other"]],["Term","text","e.g., Fall 2026"]],
+    resolveFolder(v){const p=v.Person||cfgDefaultPerson(),people=cfgPeople(false);if(v["Document Type"]==="Theology Study")return cfgPath("theologyEducation");if(p===people[2])return cfgPath("dependent1Education");if(p===people[3])return cfgPath("dependent2Education");return cfgPath("primaryEducation")}
   },
   "Home & Property": {
     pattern:"{Document Type}_{Item}_{Date}",
     fields:[["Document Type","select",["Housing","Utility","Warranty","Manual","Installation","Repair","Insurance","Property Record","Other"]],["Item","text","Home, appliance, utility, etc."],["Date","date",today],["Provider","text","Optional provider"]],
-    resolveFolder(v){if(v["Document Type"]==="Utility")return "07 Home & Property/Utilities";if(["Housing","Property Record","Insurance"].includes(v["Document Type"]))return "07 Home & Property/Housing";if(["Warranty","Manual","Installation","Repair"].includes(v["Document Type"]))return "07 Home & Property/Housing";return "99 Inbox"}
+    resolveFolder(v){if(v["Document Type"]==="Utility")return cfgPath("utilities");if(["Housing","Property Record","Insurance","Warranty","Manual","Installation","Repair"].includes(v["Document Type"]))return cfgPath("housing");return cfgPath("inbox")}
   },
   "Vehicles": {
     pattern:"{Vehicle}_{Document Type}_{Odometer}mi_{Date}",
-    fields:[["Vehicle","text","e.g., Toyota Aqua"],["Document Type","select",["Maintenance","Registration","Insurance","Inspection","Purchase","Repair","Other"]],["Odometer","number","Optional"],["Date","date",today]],
-    resolveFolder(v){const vehicle=sanitize(v.Vehicle||"Vehicle");const t=sanitize(v["Document Type"]||"Records");return `08 Vehicles/${vehicle}/${t}`}
+    fields:[["Vehicle","text","Vehicle"],["Document Type","select",["Maintenance","Registration","Insurance","Inspection","Purchase","Repair","Other"]],["Odometer","number","Optional"],["Date","date",today]],
+    resolveFolder(v){return cfgPath("vehiclesRoot",`${sanitize(v.Vehicle||"Vehicle")}/${sanitize(v["Document Type"]||"Records")}`)}
   },
   "Immigration & Travel": {
     pattern:"{Document Type}_{Person}_{Trip}_{Date}",
-    fields:[["Document Type","select",["Papa Immigration","Passport / Citizenship","Trip","Travel Authorization","Visa / Immigration","Other"]],["Person","text","Person"],["Trip","text","e.g., Spain or Peru 2026"],["Date","date",today]],
-    resolveFolder(v){const t=v["Document Type"];if(t==="Papa Immigration"||t==="Visa / Immigration")return "09 Immigration & Travel/Papa Immigration/Visa Papa";if(t==="Passport / Citizenship")return "09 Immigration & Travel/Passports & Citizenship";if(t==="Travel Authorization")return "09 Immigration & Travel/Travel Authorizations";if(t==="Trip")return `09 Immigration & Travel/Trips/${sanitize(v.Trip||"Trip")}`;return "99 Inbox"}
+    fields:[["Document Type","select",["Family Immigration","Passport / Citizenship","Trip","Travel Authorization","Visa / Immigration","Other"]],["Person","text","Person"],["Trip","text","Destination or trip"],["Date","date",today]],
+    resolveFolder(v){const t=v["Document Type"];if(t==="Family Immigration"||t==="Visa / Immigration")return cfgPath("familyImmigration");if(t==="Passport / Citizenship")return cfgPath("passports");if(t==="Travel Authorization")return cfgPath("travelAuthorizations");if(t==="Trip")return cfgPath("tripsRoot",sanitize(v.Trip||"Trip"));return cfgPath("inbox")}
   },
   "Receipts": {
     pattern:"{Merchant}_{Receipt Type}_{Date}_{Amount}",
     fields:[["Receipt Type","select",["Purchase","Service","Subscription","Other"]],["Merchant","text","Merchant or provider"],["Amount","text","Optional amount"],["Date","date",today]],
-    resolveFolder(v){return ({"Purchase":"10 Receipts/Purchases","Service":"10 Receipts/Services","Subscription":"10 Receipts/Subscriptions","Other":"10 Receipts/Other"})[v["Receipt Type"]]||"10 Receipts/Other"}
+    resolveFolder(v){return ({"Purchase":cfgPath("receiptPurchases"),"Service":cfgPath("receiptServices"),"Subscription":cfgPath("receiptSubscriptions"),"Other":cfgPath("receiptOther")})[v["Receipt Type"]]||cfgPath("receiptOther")}
   },
   "Reference Library": {
     pattern:"{Title}_{Date}",
-    fields:[["Document Type","select",["Theology","Mapas de la Palabra","Book","Catholic / Angelus","Other Reference"]],["Title","text","Title"],["Date","date",today]],
-    resolveFolder(v){return ({"Theology":"11 Reference Library/Theology","Mapas de la Palabra":"11 Reference Library/Mapas de la Palabra","Book":"11 Reference Library/Books","Catholic / Angelus":"11 Reference Library/Catholic/Angelus","Other Reference":"11 Reference Library"})[v["Document Type"]]||"11 Reference Library"}
+    fields:[["Document Type","select",["Theology","Study Notes","Book","Catholic / Prayer","Other Reference"]],["Title","text","Title"],["Date","date",today]],
+    resolveFolder(v){return ({"Theology":cfgPath("referenceTheology"),"Study Notes":cfgPath("referenceStudy"),"Book":cfgPath("referenceBooks"),"Catholic / Prayer":cfgPath("referencePrayer"),"Other Reference":cfgPath("referenceRoot")})[v["Document Type"]]||cfgPath("referenceRoot")}
   },
   "Technology & Apps": {
     pattern:"{Document Type}_{Title}_{Date}",
     fields:[["Document Type","select",["My App","Recovery / Security","Legacy Web File","Other"]],["Title","text","App, file, or project name"],["Date","date",today]],
-    resolveFolder(v){return ({"My App":"12 Technology & Apps/My Apps","Recovery / Security":"12 Technology & Apps/Recovery & Security","Legacy Web File":"12 Technology & Apps/Legacy Web Files"})[v["Document Type"]]||"99 Inbox"}
+    resolveFolder(v){return ({"My App":cfgPath("myApps"),"Recovery / Security":cfgPath("recoverySecurity"),"Legacy Web File":cfgPath("legacyWeb")})[v["Document Type"]]||cfgPath("inbox")}
   },
   "Other / Unsure": {
     pattern:"{Title}_{Date}",
     fields:[["Title","text","What is this document?"],["Date","date",today]],
-    resolveFolder(){return "99 Inbox"}
+    resolveFolder(){return cfgPath("inbox")}
   }
-};
+}
 const $=id=>document.getElementById(id);
 let selectedFile=null;
 let generated={folder:"",name:""};
@@ -387,7 +406,7 @@ function values(){const out={Year:new Date().getFullYear()}; document.querySelec
 function applyTemplate(t,obj){return t.replace(/\{([^}]+)\}/g,(_,k)=>sanitize(obj[k]||k)).replace(/_+/g,"_")}
 function extension(){if(!selectedFile)return ".jpg"; const n=selectedFile.name||""; const m=n.match(/\.[^.]+$/); return m?m[0].toLowerCase():(selectedFile.type.includes("pdf")?".pdf":".jpg")}
 function updatePreview(){const d=definitions[$('category').value],v=values();v.Year=(v.Date||today).slice(0,4)||new Date().getFullYear();let saved=getRules()[$('category').value];let baseFolder=d.resolveFolder?d.resolveFolder(v):(d.folder||'99 Inbox');let folder=applyTemplate(saved?.folder||baseFolder,v);let name=applyTemplate(saved?.pattern||d.pattern,v);folder="/"+folder.replace(/^\/+|\/+$/g,"")+"/";name=(name||"Document_"+today)+extension();generated={folder,name};$('folderPreview').textContent=folder;$('filenamePreview').textContent=name;$('folderEdit').value=folder;$('filenameEdit').value=name}
-function renderFields(){const cat=$('category').value,d=definitions[cat];$('dynamicFields').innerHTML="";d.fields.forEach(([name,type,arg])=>{const wrap=document.createElement('div'),lab=document.createElement('label');lab.textContent=name;const el=document.createElement(type==='select'?'select':'input');el.dataset.field=name;if(type==='select'){arg.forEach(o=>{let op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op)})}else{el.type=type;if(type==='date')el.value=arg||today;else el.placeholder=arg||""}el.addEventListener('input',updatePreview);wrap.append(lab,el);$('dynamicFields').appendChild(wrap)});updatePreview();syncChips()}
+function renderFields(){const cat=$('category').value,d=definitions[cat];$('dynamicFields').innerHTML="";d.fields.forEach(([name,type,arg])=>{const wrap=document.createElement('div'),lab=document.createElement('label');lab.textContent=name;const el=document.createElement(type==='select'?'select':'input');el.dataset.field=name;if(type==='select'){const opts=typeof arg==='function'?arg():arg;opts.forEach(o=>{let op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op)})}else{el.type=type;if(type==='date')el.value=arg||today;else el.placeholder=arg||""}el.addEventListener('input',updatePreview);wrap.append(lab,el);$('dynamicFields').appendChild(wrap)});updatePreview();syncChips()}
 function syncChips(){document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.cat===$('category').value))}
 function initCategories(){
   Object.keys(definitions)
@@ -1481,7 +1500,7 @@ window.addEventListener('resize',()=>{
 // ================== end FileNest v4.0 scanner overrides ==================
 
 
-// ================= FileNest v4.5.1 — Still Camera Capture =================
+// ================= FileNest v4.6 — Still Camera Capture =================
 // Use the phone's normal still-camera flow instead of a continuous video stream.
 // After the photo returns, FileNest opens the frozen-image corner editor.
 
@@ -1584,7 +1603,7 @@ if(scanButton){
 }
 
 
-// ================= FileNest v4.5.1 — Scan Setup =================
+// ================= FileNest v4.6 — Scan Setup =================
 function v43UpdateSetupUI(){
   $('setupSingle').classList.toggle('active',!batchMode);
   $('setupBatch').classList.toggle('active',batchMode);
@@ -1674,7 +1693,47 @@ if($('watermarkToggle')){
     refreshReviewPreview();
   };
 }
-// ================= end FileNest v4.5.1 Scan Setup =================
+// ================= end FileNest v4.6 Scan Setup =================
+
+
+// ================= FileNest v4.6 security =================
+function updatePrivateConfigStatus(){
+  const el=$('privateConfigStatus');
+  if(!el)return;
+  const c=getPrivateConfig();
+  if(c&&c.schema===1&&c.paths){
+    el.textContent='Private filing map loaded on this device.';
+    el.style.color='#176b52';
+  }else{
+    el.textContent='Private filing map not loaded. Generic names and Inbox are used until you import it.';
+    el.style.color='#9a6700';
+  }
+}
+$('privateConfigInput').addEventListener('change',async e=>{
+  const file=e.target.files?.[0];
+  if(!file)return;
+  try{
+    const data=JSON.parse(await file.text());
+    if(data?.schema!==1||!Array.isArray(data.people)||!data.paths||typeof data.paths!=='object')throw new Error('Invalid private configuration');
+    localStorage.setItem(PRIVATE_CONFIG_KEY,JSON.stringify(data));
+    updatePrivateConfigStatus();
+    show('Private filing map loaded locally. Reloading FileNest…',true);
+    setTimeout(()=>location.reload(),400);
+  }catch(err){
+    console.error(err);
+    show('Could not import the private filing map.',false);
+  }finally{
+    e.target.value='';
+  }
+});
+$('removePrivateConfig').onclick=()=>{
+  localStorage.removeItem(PRIVATE_CONFIG_KEY);
+  updatePrivateConfigStatus();
+  show('Private filing map removed from this device. Reloading FileNest…',true);
+  setTimeout(()=>location.reload(),400);
+};
+updatePrivateConfigStatus();
+// ================= end v4.6 security =================
 
 initCategories();renderRules();
 </script>
