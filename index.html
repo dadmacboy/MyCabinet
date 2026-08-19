@@ -52,7 +52,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 .reviewActions button{flex:1}
 
 
-/* FileNest v4.5 visible corner editor */
+/* FileNest v4.5.1 visible corner editor */
 #freezeEditor{display:flex}
 #freezeEditor.hidden{display:none!important}
 #freezeImage{z-index:1}
@@ -106,15 +106,14 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 <body>
 <div class="app">
   <header class="hero">
-    <h1>FileNest <span class="small" style="font-size:.42em;vertical-align:middle;font-weight:800">v4.4</span></h1>
+    <h1>FileNest <span class="small" style="font-size:.42em;vertical-align:middle;font-weight:800">v4.5.1</span></h1>
     <p>Scan it. Identify it. File it into your real Proton Drive structure.</p>
   </header>
 
   <section class="card">
-    <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2><p>Use the document scanner for edge detection and auto-capture, or choose an existing file. After scanning, FileNest keeps the prepared PDF/JPEG here until you choose where to save it.</p></div></div>
+    <div class="step"><div class="num">1</div><div><h2>Scan or choose a document</h2></div></div>
     <div class="actions">
       <button class="primary" id="openScannerBtn">▣ Scan Document</button>
-
 
       <label class="buttonLabel secondary" for="fileInput">＋ Choose existing file</label>
       <input id="fileInput" class="hidden" type="file" accept="image/*,.pdf" />
@@ -133,8 +132,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 
   <section class="card">
     <div class="step"><div class="num">2</div><div><h2>What kind of document is it?</h2><p>Choose the closest match. FileNest maps it to your actual numbered filing system.</p></div></div>
-    <div id="categoryChips" class="chips"></div>
-    <label for="category">Category</label><select id="category"></select>
+    <label for="category">Kind of document</label><select id="category"></select>
     <div id="dynamicFields" class="grid two"></div>
     <label for="notes">Optional notes</label><textarea id="notes" placeholder="Anything useful for finding this later"></textarea>
   </section>
@@ -168,7 +166,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
   </section>
 
-  <div class="footer">FileNest v4.5 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
+  <div class="footer">FileNest v4.5.1 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
 </div>
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
@@ -251,17 +249,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   <div id="batchStrip" class="batchStrip hidden"></div>
   <div class="reviewTools">
     <label>Scan appearance</label>
-    <select id="documentTypeDropdown">
-        <option value="">Select document type…</option>
-        <option value="B&amp;amp;W">B&amp;W</option>
-        <option value="↶ Retake">↶ Retake</option>
-        <option value="↻ Re-detect">↻ Re-detect</option>
-        <option value="✓ Use Scan &amp; Continue">✓ Use Scan & Continue</option>
-        <option value="✓ Use This Page">✓ Use This Page</option>
-        <option value="＋ Next Page">＋ Next Page</option>
-        <option value="📄 PDF — Document">📄 PDF — Document</option>
-        <option value="🖼️ JPEG — Image">🖼️ JPEG — Image</option>
-      </select>
+    <div class="modeChoice"><button type="button" id="modeOriginal">Original</button><button type="button" id="modeDocument" class="active">Document</button><button type="button" id="modeBW">B&amp;W</button></div>
     <label class="watermarkRow"><input id="watermarkToggle" type="checkbox" checked> Add small FileNest logo watermark</label>
   </div>
   <div class="reviewOptions">
@@ -401,7 +389,19 @@ function extension(){if(!selectedFile)return ".jpg"; const n=selectedFile.name||
 function updatePreview(){const d=definitions[$('category').value],v=values();v.Year=(v.Date||today).slice(0,4)||new Date().getFullYear();let saved=getRules()[$('category').value];let baseFolder=d.resolveFolder?d.resolveFolder(v):(d.folder||'99 Inbox');let folder=applyTemplate(saved?.folder||baseFolder,v);let name=applyTemplate(saved?.pattern||d.pattern,v);folder="/"+folder.replace(/^\/+|\/+$/g,"")+"/";name=(name||"Document_"+today)+extension();generated={folder,name};$('folderPreview').textContent=folder;$('filenamePreview').textContent=name;$('folderEdit').value=folder;$('filenameEdit').value=name}
 function renderFields(){const cat=$('category').value,d=definitions[cat];$('dynamicFields').innerHTML="";d.fields.forEach(([name,type,arg])=>{const wrap=document.createElement('div'),lab=document.createElement('label');lab.textContent=name;const el=document.createElement(type==='select'?'select':'input');el.dataset.field=name;if(type==='select'){arg.forEach(o=>{let op=document.createElement('option');op.value=o;op.textContent=o;el.appendChild(op)})}else{el.type=type;if(type==='date')el.value=arg||today;else el.placeholder=arg||""}el.addEventListener('input',updatePreview);wrap.append(lab,el);$('dynamicFields').appendChild(wrap)});updatePreview();syncChips()}
 function syncChips(){document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.cat===$('category').value))}
-function initCategories(){Object.keys(definitions).forEach(cat=>{let op=document.createElement('option');op.value=cat;op.textContent=cat;$('category').appendChild(op);let b=document.createElement('button');b.type='button';b.className='chip';b.dataset.cat=cat;b.textContent=cat;b.onclick=()=>{$('category').value=cat;renderFields()};$('categoryChips').appendChild(b)});$('category').value='Financial / Tax';$('category').onchange=renderFields;renderFields()}
+function initCategories(){
+  Object.keys(definitions)
+    .sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:'base'}))
+    .forEach(cat=>{
+      const op=document.createElement('option');
+      op.value=cat;
+      op.textContent=cat;
+      $('category').appendChild(op);
+    });
+  $('category').value='Financial / Tax';
+  $('category').onchange=renderFields;
+  renderFields();
+}
 function selectFile(file, label){selectedFile=file;if(!selectedFile){$('fileInfo').textContent='No document selected.';return}$('fileInfo').textContent=`${label||selectedFile.name} • ${(selectedFile.size/1024).toFixed(1)} KB`;if(selectedFile.type.startsWith('image/')){const u=URL.createObjectURL(selectedFile);$('thumb').src=u;$('thumb').style.display='inline-block'}else $('thumb').style.display='none';updatePreview()}
 $('fileInput').addEventListener('change',e=>selectFile(e.target.files[0]||null));
 function getRules(){try{return JSON.parse(localStorage.getItem('fileNestRulesV3')||'{}')}catch{return {}}}
@@ -1481,7 +1481,7 @@ window.addEventListener('resize',()=>{
 // ================== end FileNest v4.0 scanner overrides ==================
 
 
-// ================= FileNest v4.5 — Still Camera Capture =================
+// ================= FileNest v4.5.1 — Still Camera Capture =================
 // Use the phone's normal still-camera flow instead of a continuous video stream.
 // After the photo returns, FileNest opens the frozen-image corner editor.
 
@@ -1584,7 +1584,7 @@ if(scanButton){
 }
 
 
-// ================= FileNest v4.5 — Scan Setup =================
+// ================= FileNest v4.5.1 — Scan Setup =================
 function v43UpdateSetupUI(){
   $('setupSingle').classList.toggle('active',!batchMode);
   $('setupBatch').classList.toggle('active',batchMode);
@@ -1674,41 +1674,7 @@ if($('watermarkToggle')){
     refreshReviewPreview();
   };
 }
-// ================= end FileNest v4.5 Scan Setup =================
-
-
-// ================= FileNest v4.5 UI cleanup =================
-function v45BindDocumentTypeDropdown(){
-  const dd=$('documentTypeDropdown');
-  if(!dd)return;
-
-  dd.onchange=()=>{
-    const value=dd.value;
-
-    // Update any generated Document Type select.
-    const selects=[...document.querySelectorAll('select')];
-    const target=selects.find(s=>{
-      const label=s.closest('.field')?.querySelector('label')?.textContent||'';
-      return /document type|kind of document/i.test(label) && s!==dd;
-    });
-
-    if(target){
-      target.value=value;
-      target.dispatchEvent(new Event('change',{bubbles:true}));
-    }
-
-    // If app tracks dynamic field values via fieldValues or similar, trigger normal generation.
-    try{
-      const input=[...document.querySelectorAll('[data-field]')].find(el=>/document type/i.test(el.dataset.field||''));
-      if(input && input!==dd){
-        input.value=value;
-        input.dispatchEvent(new Event('change',{bubbles:true}));
-      }
-    }catch(e){}
-  };
-}
-setTimeout(v45BindDocumentTypeDropdown,0);
-// ================= end v4.5 cleanup =================
+// ================= end FileNest v4.5.1 Scan Setup =================
 
 initCategories();renderRules();
 </script>

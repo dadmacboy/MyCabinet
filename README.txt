@@ -1,22 +1,31 @@
-FileNest v4.5 — UI Cleanup
+FileNest v4.5.1 — Repaired UI Cleanup
 Updated: 19 Aug 2026
 
-CHANGES
+This release was rebuilt directly from the working v4.4 package.
+
+CHANGES ONLY
 1. Step 1
-   - Removed the explanatory scanner sentence.
+   - Removed the explanatory scanner text.
 
 2. Step 2
-   - Replaced the document-type button selection with a dropdown.
-   - Document types are alphabetized A–Z.
+   - Removed the category chip/buttons.
+   - The existing Category dropdown is now labeled "Kind of document".
+   - Its options are sorted alphabetically A–Z.
+   - The normal category-specific fields underneath remain unchanged.
 
 3. Step 4
-   - Removed the explanatory iPhone / Proton Drive sentence.
+   - Removed the iPhone / Proton Drive Share Sheet explanation from the heading.
 
-UNCHANGED
-- Still-camera scan flow
+NOT CHANGED
 - Scan Setup
-- Batch workflow
+- Still-camera capture
 - Frozen four-corner editor
-- PDF/JPEG output
-- Watermark default ON
-- Filing logic
+- Original / Document / B&W review controls
+- Batch mode
+- Watermark
+- PDF/JPEG
+- Filing rules
+- Save/share behavior
+
+IMPORTANT
+The broken v4.5 dropdown code was not reused.
