@@ -52,7 +52,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
 .reviewActions button{flex:1}
 
 
-/* FileNest v4.2 visible corner editor */
+/* FileNest v4.4 visible corner editor */
 #freezeEditor{display:flex}
 #freezeEditor.hidden{display:none!important}
 #freezeImage{z-index:1}
@@ -84,12 +84,29 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   box-shadow:0 0 14px rgba(49,243,186,.55),0 0 0 9999px rgba(0,0,0,.06);
 }
 
+
+.scanSetup{position:fixed;inset:0;background:rgba(3,15,14,.88);z-index:130;display:grid;place-items:center;padding:20px}
+.scanSetup.hidden{display:none!important}
+.scanSetupCard{width:min(440px,100%);background:#f8fbfa;color:#16302c;border-radius:20px;padding:18px;box-shadow:0 24px 60px rgba(0,0,0,.35)}
+.scanSetupCard h2{margin:0 0 6px}
+.scanSetupCard p{margin:0 0 16px;color:#52645f}
+.scanSetupGroup{margin:14px 0}
+.scanSetupGroup label{display:block;font-weight:800;margin-bottom:7px}
+.scanSetupChoices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.scanSetupChoice{border:1px solid #b8cbc6;background:white;color:#173c36;padding:12px 10px;border-radius:12px;font-weight:800}
+.scanSetupChoice.active{background:#0f766e;color:white;border-color:#0f766e}
+.scanSetupToggle{display:flex;justify-content:space-between;align-items:center;gap:14px;background:#eef6f4;border-radius:12px;padding:12px}
+.scanSetupToggle input{width:22px;height:22px}
+.scanSetupActions{display:flex;gap:10px;margin-top:18px}
+.scanSetupActions button{flex:1}
+.scanSetupSummary{font-size:12px;color:#5d726d;margin-top:8px}
+
 </style>
 </head>
 <body>
 <div class="app">
   <header class="hero">
-    <h1>FileNest</h1>
+    <h1>FileNest <span class="small" style="font-size:.42em;vertical-align:middle;font-weight:800">v4.4</span></h1>
     <p>Scan it. Identify it. File it into your real Proton Drive structure.</p>
   </header>
 
@@ -98,7 +115,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div class="actions">
       <button class="primary" id="openScannerBtn">▣ Scan Document</button>
 <div class="small" style="margin-top:8px">
-  Uses the phone’s normal rear camera. Take the photo first; FileNest will detect and let you adjust the four document corners afterward.
+  Choose Single or Batch and watermark settings first. Then FileNest opens the phone’s normal rear camera.
 </div>
 
       <label class="buttonLabel secondary" for="fileInput">＋ Choose existing file</label>
@@ -153,7 +170,7 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
     <div id="rulesList" style="margin-top:10px"></div><div class="actions"><button id="clearRules" class="secondary">Clear saved rules</button></div>
   </section>
 
-  <div class="footer">FileNest v4.2 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
+  <div class="footer">FileNest v4.4 • No account, no cloud AI, no document upload. Camera processing and filing rules run in your browser. Unknown items default safely to 99 Inbox.</div>
 </div>
 
 <div id="scanner" class="scanner hidden" aria-hidden="true">
@@ -173,6 +190,39 @@ button,.buttonLabel{border:0;border-radius:14px;padding:13px 16px;font-weight:80
   <div class="scannerControls"><button id="autoToggle" class="autoBtn">Auto: ON</button><button id="batchToggle" class="batchBtn">Batch: OFF</button><button id="captureBtn" class="cameraBtn">● Capture</button><button id="finishBatch" class="finishBatchBtn hidden">Finish Batch</button></div>
 </div>
 
+
+
+<div id="scanSetup" class="scanSetup hidden" aria-hidden="true">
+  <div class="scanSetupCard">
+    <h2>Scan Setup</h2>
+    <p>Choose how you want to scan before opening the camera.</p>
+
+    <div class="scanSetupGroup">
+      <label>Scan mode</label>
+      <div class="scanSetupChoices">
+        <button type="button" id="setupSingle" class="scanSetupChoice active">Single Page</button>
+        <button type="button" id="setupBatch" class="scanSetupChoice">Batch</button>
+      </div>
+      <div class="scanSetupSummary" id="setupModeHelp">Scan one page, review it, then continue filing.</div>
+    </div>
+
+    <div class="scanSetupGroup">
+      <label>Watermark</label>
+      <div class="scanSetupToggle">
+        <div>
+          <strong>FileNest logo</strong>
+          <div class="small">Applied to the finished scan.</div>
+        </div>
+        <input id="setupWatermark" type="checkbox" checked aria-label="Add FileNest watermark">
+      </div>
+    </div>
+
+    <div class="scanSetupActions">
+      <button type="button" id="setupCancel" class="secondary">Cancel</button>
+      <button type="button" id="setupStart" class="cameraBtn">Open Camera</button>
+    </div>
+  </div>
+</div>
 
 <div id="freezeEditor" class="freezeEditor hidden" aria-hidden="true">
   <div class="freezeTop">
@@ -1423,7 +1473,7 @@ window.addEventListener('resize',()=>{
 // ================== end FileNest v4.0 scanner overrides ==================
 
 
-// ================= FileNest v4.2 — Still Camera Capture =================
+// ================= FileNest v4.4 — Still Camera Capture =================
 // Use the phone's normal still-camera flow instead of a continuous video stream.
 // After the photo returns, FileNest opens the frozen-image corner editor.
 
@@ -1524,6 +1574,99 @@ const scanButton=$('openScannerBtn');
 if(scanButton){
   scanButton.textContent='Open Camera to Scan';
 }
+
+
+// ================= FileNest v4.4 — Scan Setup =================
+function v43UpdateSetupUI(){
+  $('setupSingle').classList.toggle('active',!batchMode);
+  $('setupBatch').classList.toggle('active',batchMode);
+  $('setupWatermark').checked=watermarkEnabled;
+  $('setupModeHelp').textContent=batchMode
+    ? 'Scan and approve one page at a time. Tap Next Page until the batch is complete.'
+    : 'Scan one page, review it, then continue filing.';
+}
+
+function v43OpenSetup(){
+  v43UpdateSetupUI();
+  $('scanSetup').classList.remove('hidden');
+  $('scanSetup').setAttribute('aria-hidden','false');
+}
+
+function v43CloseSetup(){
+  $('scanSetup').classList.add('hidden');
+  $('scanSetup').setAttribute('aria-hidden','true');
+}
+
+$('setupSingle').onclick=()=>{
+  batchMode=false;
+  v43UpdateSetupUI();
+};
+
+$('setupBatch').onclick=()=>{
+  batchMode=true;
+  v43UpdateSetupUI();
+};
+
+$('setupWatermark').onchange=()=>{
+  watermarkEnabled=$('setupWatermark').checked;
+  // Keep the post-scan review toggle synchronized.
+  if($('watermarkToggle'))$('watermarkToggle').checked=watermarkEnabled;
+};
+
+$('setupCancel').onclick=()=>v43CloseSetup();
+
+$('setupStart').onclick=()=>{
+  watermarkEnabled=$('setupWatermark').checked;
+  if($('watermarkToggle'))$('watermarkToggle').checked=watermarkEnabled;
+
+  // Synchronize any legacy batch control in the hidden scanner UI.
+  if($('batchToggle')){
+    $('batchToggle').classList.toggle('active',batchMode);
+    $('batchToggle').textContent=`Batch: ${batchMode?'ON':'OFF'}`;
+  }
+
+  v43CloseSetup();
+  v42OpenStillCamera();
+};
+
+// Main scan entry now opens setup, not the camera.
+$('openScannerBtn').onclick=()=>v43OpenSetup();
+
+// If camera recovery is ever shown, keep it direct.
+$('enableCameraBtn').onclick=()=>v42OpenStillCamera();
+
+// Batch "Next Page" must NOT show setup again; the batch choice is already locked in.
+$('nextBatchPage').onclick=()=>{
+  $('scanReview').classList.add('hidden');
+  v42OpenStillCamera();
+};
+
+// Retake stays within the current scan mode/settings.
+$('retakeScan').onclick=()=>{
+  if(batchPages.length){
+    const old=batchPages.splice(activeReviewIndex,1)[0];
+    try{URL.revokeObjectURL(old.url)}catch(e){}
+    activeReviewIndex=Math.max(0,batchPages.length-1);
+  }
+  $('scanReview').classList.add('hidden');
+  v42OpenStillCamera();
+};
+
+// Retake from frozen-corner editor also preserves the setup choices.
+$('freezeCancel').onclick=()=>{
+  v4HideFrozenEditor();
+  v42OpenStillCamera();
+};
+
+// Keep review watermark toggle and setup watermark synchronized both ways.
+if($('watermarkToggle')){
+  $('watermarkToggle').onchange=()=>{
+    watermarkEnabled=$('watermarkToggle').checked;
+    $('setupWatermark').checked=watermarkEnabled;
+    refreshReviewPreview();
+  };
+}
+// ================= end FileNest v4.4 Scan Setup =================
 
 initCategories();renderRules();
 </script>
